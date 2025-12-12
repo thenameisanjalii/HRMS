@@ -13,10 +13,11 @@ const EmployeeManagement = () => {
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
     const [newEmployee, setNewEmployee] = useState({
+        employeeId: '',
         username: '',
         email: '',
         password: '',
-        role: 'Employee',
+        role: 'EMPLOYEE',
         profile: {
             firstName: '',
             lastName: '',
@@ -46,7 +47,7 @@ const EmployeeManagement = () => {
     };
 
     const handleAddEmployee = async () => {
-        if (!newEmployee.username || !newEmployee.email || !newEmployee.password) {
+        if (!newEmployee.employeeId || !newEmployee.username || !newEmployee.email || !newEmployee.password) {
             alert('Please fill all required fields');
             return;
         }
@@ -56,10 +57,11 @@ const EmployeeManagement = () => {
                 alert('Employee added successfully');
                 setShowAddModal(false);
                 setNewEmployee({
+                    employeeId: '',
                     username: '',
                     email: '',
                     password: '',
-                    role: 'Employee',
+                    role: 'EMPLOYEE',
                     profile: { firstName: '', lastName: '', phone: '' },
                     employment: { designation: '', department: '' }
                 });
@@ -150,17 +152,18 @@ const EmployeeManagement = () => {
                         </div>
                         <div className="modal-body">
                             <div className="form-row">
+                                <input type="text" placeholder="Employee ID *" value={newEmployee.employeeId} onChange={(e) => setNewEmployee({...newEmployee, employeeId: e.target.value})} />
                                 <input type="text" placeholder="Username *" value={newEmployee.username} onChange={(e) => setNewEmployee({...newEmployee, username: e.target.value})} />
-                                <input type="email" placeholder="Email *" value={newEmployee.email} onChange={(e) => setNewEmployee({...newEmployee, email: e.target.value})} />
                             </div>
                             <div className="form-row">
+                                <input type="email" placeholder="Email *" value={newEmployee.email} onChange={(e) => setNewEmployee({...newEmployee, email: e.target.value})} />
                                 <input type="password" placeholder="Password *" value={newEmployee.password} onChange={(e) => setNewEmployee({...newEmployee, password: e.target.value})} />
                                 <select value={newEmployee.role} onChange={(e) => setNewEmployee({...newEmployee, role: e.target.value})}>
-                                    <option value="Employee">Employee</option>
-                                    <option value="Incubation_Manager">Incubation Manager</option>
-                                    <option value="Accountant">Accountant</option>
-                                    <option value="Officer_In_Charge">Officer In Charge</option>
-                                    <option value="Faculty_In_Charge">Faculty In Charge</option>
+                                    <option value="EMPLOYEE">EMPLOYEE</option>
+                                    <option value="INCUBATION_MANAGER">INCUBATION MANAGER</option>
+                                    <option value="ACCOUNTANT">ACCOUNTANT</option>
+                                    <option value="OFFICER_IN_CHARGE">OFFICER IN CHARGE</option>
+                                    <option value="FACULTY_IN_CHARGE">FACULTY IN CHARGE</option>
                                 </select>
                             </div>
                             <div className="form-row">
@@ -171,9 +174,9 @@ const EmployeeManagement = () => {
                                 <input type="text" placeholder="Phone" value={newEmployee.profile.phone} onChange={(e) => setNewEmployee({...newEmployee, profile: {...newEmployee.profile, phone: e.target.value}})} />
                                 <input type="text" placeholder="Designation" value={newEmployee.employment.designation} onChange={(e) => setNewEmployee({...newEmployee, employment: {...newEmployee.employment, designation: e.target.value}})} />
                             </div>
-                            <div className="form-row">
+                            {/* <div className="form-row">
                                 <input type="text" placeholder="Department" value={newEmployee.employment.department} onChange={(e) => setNewEmployee({...newEmployee, employment: {...newEmployee.employment, department: e.target.value}})} />
-                            </div>
+                            </div> */}
                         </div>
                         <div className="modal-footer">
                             <button className="cancel-btn" onClick={() => setShowAddModal(false)}>Cancel</button>

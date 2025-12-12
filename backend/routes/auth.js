@@ -10,6 +10,44 @@ const generateToken = (id) => {
     });
 };
 
+router.post('/register', protect, async(req, res) =>{
+    try{
+        const { employeeId, username, email, password, role, profile, employment } = req.body;
+
+        //check if user exists
+        const userExists = await User.findOne({ $or: [{ username }, { email }, { employeeId }]});
+        if(userExists){
+            return res.status(400).json({ message: 'User with given username, email or employee id already exists'});
+        }
+
+        //Create user
+        const user = await User.create({
+            employeeId,
+            username,
+            email,
+            password,
+            role: role || 'EMPLOYEE',
+            profile: profile || {}, 
+            employment
+        });
+
+        res.status(201).json({
+            success: true,
+            message: 'User registered successfully',
+            user: {
+                _id: user._id,
+                employeeId: user.employeeId,
+                username: user.username,
+                email: user.email,
+                role: user.role
+            }
+        });
+
+    }catch(error){
+        res.status(500).json({message: 'Server error', error: error.message })
+    }
+})
+
 router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;

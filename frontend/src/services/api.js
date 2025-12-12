@@ -23,6 +23,7 @@ export const authAPI = {
     },
 
     register: async (userData) => {
+        console.log('Registering user with data:', userData);
         const response = await fetch(`${API_URL}/auth/register`, {
             method: 'POST',
             headers: {
