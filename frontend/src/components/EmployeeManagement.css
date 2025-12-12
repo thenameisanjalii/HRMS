@@ -17,7 +17,7 @@
     font-size: 2rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
-    background: linear-gradient(90deg, #fff, rgba(255, 255, 255, 0.7));
+    background: black;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -71,14 +71,14 @@
 }
 
 .search-icon {
-    color: rgba(255, 255, 255, 0.5);
+    color: black;
     margin-right: 0.75rem;
 }
 
 .search-bar input {
     background: transparent;
     border: none;
-    color: #fff;
+    color: black;
     width: 100%;
     font-family: inherit;
     font-size: 0.95rem;
@@ -99,14 +99,14 @@
 }
 
 .filter-icon {
-    color: rgba(255, 255, 255, 0.5);
+    color: black;
     margin-right: 0.5rem;
 }
 
 .filter-dropdown select {
     background: transparent;
     border: none;
-    color: #fff;
+    color:black;
     font-family: inherit;
     font-size: 0.95rem;
     cursor: pointer;
