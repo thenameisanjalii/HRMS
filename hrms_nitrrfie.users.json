@@ -1,0 +1,293 @@
+[{
+  "_id": {
+    "$oid": "6936883e8c580ec5d873cf00"
+  },
+  "employeeId": "NITR-CEO-001",
+  "username": "medha",
+  "email": "ceo@nitrrfie.com",
+  "password": "$2a$10$DDWUSR/5DRCLbszJIgYq7emrU4fjTVthaANnU5XkC30Z7t4mhS4wG",
+  "role": "CEO",
+  "profile": {
+    "firstName": "Medha",
+    "lastName": "Singh",
+    "phone": "9876543210",
+    "address": {
+      "street": "NIT Raipur Campus",
+      "city": "Raipur",
+      "state": "Chhattisgarh",
+      "pincode": "492010"
+    },
+    "dateOfBirth": {
+      "$date": "1980-01-01T00:00:00.000Z"
+    },
+    "gender": "Female"
+  },
+  "employment": {
+    "designation": "Chief Executive Officer",
+    "department": "Executive",
+    "joiningDate": {
+      "$date": "2020-01-01T00:00:00.000Z"
+    },
+    "employmentType": "Full-time",
+    "salary": {
+      "basic": 150000,
+      "hra": 50000,
+      "allowances": 50000,
+      "deductions": 0
+    },
+    "baseSalary": 80000
+  },
+  "documents": {
+    "other": []
+  },
+  "leaveBalance": {
+    "casualLeave": 12,
+    "onDutyLeave": 15,
+    "leaveWithoutPay": 0
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2025-12-08T08:11:42.418Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-11T10:20:09.995Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6936883e8c580ec5d873cf03"
+  },
+  "employeeId": "NITR-MGR-001",
+  "username": "sunil",
+  "email": "manager@nitrrfie.com",
+  "password": "$2a$10$DDWUSR/5DRCLbszJIgYq7e4T6oEwr7fOpjVpHG9MEGeO37ZbaqwgK",
+  "role": "INCUBATION_MANAGER",
+  "profile": {
+    "firstName": "Sunil",
+    "lastName": "Dewangan",
+    "phone": "9876543211",
+    "address": {
+      "street": "NIT Raipur Campus",
+      "city": "Raipur",
+      "state": "Chhattisgarh",
+      "pincode": "492010"
+    },
+    "dateOfBirth": {
+      "$date": "1985-06-15T00:00:00.000Z"
+    },
+    "gender": "Male"
+  },
+  "employment": {
+    "designation": "Incubation Manager",
+    "department": "Operations",
+    "joiningDate": {
+      "$date": "2021-03-01T00:00:00.000Z"
+    },
+    "employmentType": "Full-time",
+    "salary": {
+      "basic": 80000,
+      "hra": 30000,
+      "allowances": 20000,
+      "deductions": 0
+    },
+    "baseSalary": 54000
+  },
+  "documents": {
+    "other": []
+  },
+  "leaveBalance": {
+    "casualLeave": 12,
+    "onDutyLeave": 15,
+    "leaveWithoutPay": 0
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2025-12-08T08:11:42.618Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-11T10:20:10.062Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6936883e8c580ec5d873cf06"
+  },
+  "employeeId": "NITR-ACC-001",
+  "username": "ashok",
+  "email": "accountant@nitrrfie.com",
+  "password": "$2a$10$DDWUSR/5DRCLbszJIgYq7el.0ciWqza6Rl9y9uEV.bf5/fEzjivMC",
+  "role": "ACCOUNTANT",
+  "profile": {
+    "firstName": "Ashok",
+    "lastName": "Kumar Sahu",
+    "phone": "9876543212",
+    "address": {
+      "street": "NIT Raipur Campus",
+      "city": "Raipur",
+      "state": "Chhattisgarh",
+      "pincode": "492010"
+    },
+    "dateOfBirth": {
+      "$date": "1988-03-20T00:00:00.000Z"
+    },
+    "gender": "Male"
+  },
+  "employment": {
+    "designation": "Accountant",
+    "department": "Finance",
+    "joiningDate": {
+      "$date": "2022-01-15T00:00:00.000Z"
+    },
+    "employmentType": "Full-time",
+    "salary": {
+      "basic": 60000,
+      "hra": 25000,
+      "allowances": 15000,
+      "deductions": 0
+    },
+    "baseSalary": 32400
+  },
+  "documents": {
+    "other": []
+  },
+  "leaveBalance": {
+    "casualLeave": 12,
+    "onDutyLeave": 15,
+    "leaveWithoutPay": 0
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2025-12-08T08:11:42.885Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-11T10:20:10.141Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "693a5e8682748012e4926ef8"
+  },
+  "employeeId": "NITR-FIC-001",
+  "username": "anuj",
+  "email": "facultyincharge@nitrrfie.com",
+  "password": "$2a$10$DDWUSR/5DRCLbszJIgYq7eHLgoWA1cH2o5y6u5nAjml/XCguA6ZSm",
+  "role": "FACULTY_IN_CHARGE",
+  "profile": {
+    "firstName": "Anuj",
+    "lastName": "Shukla",
+    "phone": "9136271032",
+    "address": {
+      "street": "NIT Raipur Campus",
+      "city": "Raipur",
+      "state": "Chhattisgarh",
+      "pincode": "492010"
+    },
+    "dateOfBirth": {
+      "$date": "1988-03-20T00:00:00.000Z"
+    },
+    "gender": "Male"
+  },
+  "employment": {
+    "designation": "FACULTY_IN_CHARGE",
+    "department": "NITRRFIE",
+    "joiningDate": {
+      "$date": "2022-01-15T00:00:00.000Z"
+    },
+    "employmentType": "Full-time",
+    "salary": {
+      "basic": 60000,
+      "hra": 25000,
+      "allowances": 15000,
+      "deductions": 0
+    }
+  },
+  "documents": {
+    "other": []
+  },
+  "leaveBalance": {
+    "casualLeave": 12,
+    "onDutyLeave": 15,
+    "leaveWithoutPay": 0
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2025-12-11T06:02:46.294Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-11T10:20:10.204Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "693bc889000231003721d53e"
+  },
+  "employeeId": "NITR-EMP-001",
+  "username": "abc",
+  "email": "abc@gmail.com",
+  "password": "$2a$10$i97hzvzo30D9O7KKssG/8OJQL7zgUWUvCOjwjxeJ6XlZgu/eeiLIa",
+  "role": "EMPLOYEE",
+  "profile": {
+    "firstName": "",
+    "lastName": "",
+    "phone": ""
+  },
+  "employment": {
+    "designation": "",
+    "department": ""
+  },
+  "documents": {
+    "other": []
+  },
+  "leaveBalance": {
+    "casualLeave": 12,
+    "onDutyLeave": 10,
+    "leaveWithoutPay": 0
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2025-12-12T07:47:21.600Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-12T07:47:21.600Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "693bca66000231003721d553"
+  },
+  "employeeId": "NITR-AC-001",
+  "username": "acc",
+  "email": "acc@gmail.com",
+  "password": "$2a$10$Cwk6ITSur29xAH66kYtlu.OOGlSpHOae44texS85o5KOxpzzzHrc6",
+  "role": "ACCOUNTANT",
+  "profile": {
+    "firstName": "",
+    "lastName": "",
+    "phone": ""
+  },
+  "employment": {
+    "designation": "",
+    "department": ""
+  },
+  "documents": {
+    "other": []
+  },
+  "leaveBalance": {
+    "casualLeave": 12,
+    "onDutyLeave": 10,
+    "leaveWithoutPay": 0
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2025-12-12T07:55:18.836Z"
+  },
+  "updatedAt": {
+    "$date": "2025-12-12T07:55:18.836Z"
+  },
+  "__v": 0
+}]

@@ -51,6 +51,8 @@ const UserSchema = new mongoose.Schema({
         joiningDate: Date,
         employmentType: { type: String, enum: ['Full-time', 'Part-time', 'Contract', 'Intern'] },
         reportingTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        // Used by Remuneration / payroll views (gross/base remuneration)
+        baseSalary: Number,
         salary: {
             basic: Number,
             hra: Number,
@@ -83,11 +85,14 @@ const UserSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 UserSchema.pre('save', async function(next) {
-    if (!this.isModified('password')) {
-        next();
+    try {
+        if (!this.isModified('password')) return next();
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
+        return next();
+    } catch (err) {
+        return next(err);
     }
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
 });
 
 UserSchema.methods.matchPassword = async function(enteredPassword) {

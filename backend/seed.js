@@ -18,6 +18,8 @@ const seedUsers = async () => {
         const sunilPassword = await bcrypt.hash('sunil', salt);
         const ashokPassword = await bcrypt.hash('ashok', salt);
         const anujPassword = await bcrypt.hash('anuj', salt);
+        const himanshuPassword = await bcrypt.hash('himanshu', salt);
+        const nareshPassword = await bcrypt.hash('naresh', salt);
 
         // Seed CEO
         await User.findOneAndUpdate(
@@ -44,14 +46,27 @@ const seedUsers = async () => {
                 employment: {
                     designation: 'Chief Executive Officer',
                     department: 'Executive',
-                    joiningDate: new Date('2020-01-01'),
+                    // From Remuneration.jsx (dateOfJoining: 15-07-2025)
+                    joiningDate: new Date('2025-07-15'),
                     employmentType: 'Full-time',
+                    // From Remuneration.jsx (grossRemuneration)
+                    baseSalary: 80000,
                     salary: {
                         basic: 150000,
                         hra: 50000,
                         allowances: 50000,
                         deductions: 0
                     }
+                },
+                documents: {
+                    pan: { number: 'BHRPS4064A' },
+                    other: []
+                },
+                bankDetails: {
+                    bankName: 'IDBI Bank',
+                    branch: 'Civil Lines, Raipur',
+                    accountNumber: '0495104000146716',
+                    ifscCode: 'IBKL0000495'
                 },
                 leaveBalance: {
                     casualLeave: 12,
@@ -89,14 +104,27 @@ const seedUsers = async () => {
                 employment: {
                     designation: 'Incubation Manager',
                     department: 'Operations',
-                    joiningDate: new Date('2021-03-01'),
+                    // From Remuneration.jsx (dateOfJoining: 10/9/2025)
+                    joiningDate: new Date('2025-09-10'),
                     employmentType: 'Full-time',
+                    // From Remuneration.jsx (grossRemuneration)
+                    baseSalary: 54000,
                     salary: {
                         basic: 80000,
                         hra: 30000,
                         allowances: 20000,
                         deductions: 0
                     }
+                },
+                documents: {
+                    pan: { number: 'BJZPD0141A' },
+                    other: []
+                },
+                bankDetails: {
+                    bankName: 'State Bank of India',
+                    branch: 'Camp Area Bhilai, Near Power House, Bhilai',
+                    accountNumber: '38072524817',
+                    ifscCode: 'SBIN0009154'
                 },
                 leaveBalance: {
                     casualLeave: 12,
@@ -132,16 +160,30 @@ const seedUsers = async () => {
                     gender: 'Male'
                 },
                 employment: {
-                    designation: 'Accountant',
+                    // From Remuneration.jsx
+                    designation: 'Accountant Cum Administrator',
                     department: 'Finance',
-                    joiningDate: new Date('2022-01-15'),
+                    // From Remuneration.jsx (dateOfJoining: 30/9/25)
+                    joiningDate: new Date('2025-09-30'),
                     employmentType: 'Full-time',
+                    // From Remuneration.jsx (grossRemuneration)
+                    baseSalary: 32400,
                     salary: {
                         basic: 60000,
                         hra: 25000,
                         allowances: 15000,
                         deductions: 0
                     }
+                },
+                documents: {
+                    pan: { number: 'BCPPA5763A' },
+                    other: []
+                },
+                bankDetails: {
+                    bankName: 'State Bank of India',
+                    branch: 'Telibandha GE Road, Near Railway Crossing',
+                    accountNumber: '30174860333',
+                    ifscCode: 'SBIN0005194'
                 },
                 leaveBalance: {
                     casualLeave: 12,
@@ -198,6 +240,80 @@ const seedUsers = async () => {
             { upsert: true, new: true }
         );
         console.log('Faculty In Charge user seeded successfully');
+
+        // Seed Support Staff (from Remuneration.jsx)
+        await User.findOneAndUpdate(
+            { username: 'himanshu' },
+            {
+                employeeId: 'NITR-EMP-002',
+                username: 'himanshu',
+                email: 'himanshu@nitrrfie.com',
+                password: himanshuPassword,
+                role: 'EMPLOYEE',
+                profile: {
+                    firstName: 'Himanshu',
+                    lastName: 'Verma'
+                },
+                employment: {
+                    designation: 'Support Staff',
+                    // From Remuneration.jsx (dateOfJoining: 18/10/25)
+                    joiningDate: new Date('2025-10-18'),
+                    employmentType: 'Full-time',
+                    // From Remuneration.jsx (grossRemuneration)
+                    baseSalary: 10000
+                },
+                documents: {
+                    pan: { number: 'CUTPV9394L' },
+                    other: []
+                },
+                bankDetails: {
+                    bankName: 'State Bank of India',
+                    branch: 'Nesta, Tilda',
+                    accountNumber: '39634349811',
+                    ifscCode: 'SBIN0001470'
+                },
+                isActive: true
+            },
+            { upsert: true, new: true }
+        );
+        console.log('Support Staff user seeded successfully');
+
+        // Seed Hardware Maintenance Engineer (from Remuneration.jsx)
+        await User.findOneAndUpdate(
+            { username: 'naresh' },
+            {
+                employeeId: 'NITR-EMP-003',
+                username: 'naresh',
+                email: 'naresh@nitrrfie.com',
+                password: nareshPassword,
+                role: 'EMPLOYEE',
+                profile: {
+                    firstName: 'Naresh',
+                    lastName: 'Kumar'
+                },
+                employment: {
+                    designation: 'Hardware Maintenance Engineer',
+                    // From Remuneration.jsx (dateOfJoining: 24/11/24)
+                    joiningDate: new Date('2024-11-24'),
+                    employmentType: 'Full-time',
+                    // From Remuneration.jsx (grossRemuneration)
+                    baseSalary: 25000
+                },
+                documents: {
+                    pan: { number: 'BSVPK8707R' },
+                    other: []
+                },
+                bankDetails: {
+                    bankName: 'Union Bank of India',
+                    branch: 'Borsi, Durg',
+                    accountNumber: '747902010017132',
+                    ifscCode: 'UBIN0576708'
+                },
+                isActive: true
+            },
+            { upsert: true, new: true }
+        );
+        console.log('Hardware Maintenance Engineer user seeded successfully');
 
         process.exit(0);
     } catch (error) {
