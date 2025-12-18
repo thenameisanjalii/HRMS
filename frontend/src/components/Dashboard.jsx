@@ -21,8 +21,6 @@ import Remuneration from "./Remuneration";
 import PeerRating from "./PeerRating";
 import AttendanceRecord from "./AttendanceRecord";
 import LeaveManagement from "./LeaveManagement";
-import ManagerLeaveManagement from "./ManagerLeaveManagement";
-import AccountantLeaveManagement from "./AccountantLeaveManagement";
 import EmployeeManagement from "./EmployeeManagement";
 import Salary from "./Salary";
 import EFiling from "./EFiling";
@@ -86,8 +84,6 @@ const Dashboard = ({ onLogout }) => {
 
   const userLevel = ROLE_HIERARCHY[user?.role] ?? 99;
   const isCEO = user?.role === ROLES.CEO;
-  const isIncubationManager = user?.role === ROLES.INCUBATION_MANAGER;
-  const isAccountant = user?.role === ROLES.ACCOUNTANT;
   const isAdminOrCEO = userLevel <= 1;
   const isManagerLevel = userLevel <= 2;
   const role = localStorage.getItem("role");
@@ -220,9 +216,6 @@ const Dashboard = ({ onLogout }) => {
       case "attendance":
         return <AttendanceRecord />;
       case "leave":
-        // Use different leave form based on role
-        if (isIncubationManager) return <ManagerLeaveManagement />;
-        if (isAccountant) return <AccountantLeaveManagement />;
         return <LeaveManagement />;
       case "salary":
         return <Salary />;
