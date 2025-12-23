@@ -25,6 +25,7 @@ app.use('/api/efiling', require('./routes/efiling'));
 app.use('/api/peer-rating', require('./routes/peerRating'));
 app.use('/api/variable-remuneration', require('./routes/variableRemuneration'));
 app.use('/api/remuneration', require('./routes/remuneration'));
+app.use('/api/holidays', require('./routes/holidays'));
 
 app.get('/', (req, res) => {
     res.json({ message: 'HRMS API - NITRRFIE' });

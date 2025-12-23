@@ -352,3 +352,52 @@ export const remunerationAPI = {
         return response.json();
     }
 };
+
+export const holidaysAPI = {
+    getByYear: async (year) => {
+        const response = await fetch(`${API_URL}/holidays/${year}`, {
+            headers: { ...getAuthHeader() }
+        });
+        return response.json();
+    },
+
+    add: async (holidayData) => {
+        const response = await fetch(`${API_URL}/holidays`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeader()
+            },
+            body: JSON.stringify(holidayData)
+        });
+        return response.json();
+    },
+
+    update: async (id, holidayData) => {
+        const response = await fetch(`${API_URL}/holidays/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeader()
+            },
+            body: JSON.stringify(holidayData)
+        });
+        return response.json();
+    },
+
+    delete: async (id) => {
+        const response = await fetch(`${API_URL}/holidays/${id}`, {
+            method: 'DELETE',
+            headers: { ...getAuthHeader() }
+        });
+        return response.json();
+    },
+
+    deleteByDate: async (date) => {
+        const response = await fetch(`${API_URL}/holidays/date/${date}`, {
+            method: 'DELETE',
+            headers: { ...getAuthHeader() }
+        });
+        return response.json();
+    }
+};

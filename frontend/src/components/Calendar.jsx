@@ -13,6 +13,7 @@ import {
   getHolidaysForYear, 
   prefetchAdjacentYears 
 } from "../services/googleCalendar";
+import { holidaysAPI } from "../services/api";
 import "./Calendar.css";
 
 const Calendar = () => {
@@ -34,6 +35,7 @@ const Calendar = () => {
 
   const isCEO = user?.role === ROLES.CEO;
 
+  // Fetch holidays from Google Calendar API and custom holidays from backend
   useEffect(() => {
     fetchHolidays();
   }, [currentYear]);
@@ -42,10 +44,24 @@ const Calendar = () => {
     setLoading(true);
     setError(null);
     try {
+      // Fetch gazetted holidays from Google Calendar API
       const googleHolidays = await getHolidaysForYear(currentYear);
       
+      // Fetch custom holidays from MongoDB
+      const customHolidaysResponse = await holidaysAPI.getByYear(currentYear);
+      const dbCustomHolidays = Array.isArray(customHolidaysResponse) 
+        ? customHolidaysResponse.map(h => ({
+            ...h,
+            id: h._id,
+            type: 'custom',
+          }))
+        : [];
+
       setHolidays(googleHolidays);
+      setCustomHolidays(dbCustomHolidays);
       setEditedHolidays(googleHolidays);
+
+      // Prefetch adjacent years in the background
       prefetchAdjacentYears(currentYear);
     } catch (err) {
       setError(err.message);
@@ -111,16 +127,52 @@ const Calendar = () => {
     setEditedHolidays([...holidays]);
   };
 
-  const handleAddCustomHoliday = () => {
+  const handleAddCustomHoliday = async () => {
     if (newHoliday.date && newHoliday.name) {
-      setCustomHolidays([...customHolidays, { ...newHoliday, id: Date.now() }]);
-      setNewHoliday({ date: "", name: "", description: "" });
-      setShowAddHolidayModal(false);
+      try {
+        const response = await holidaysAPI.add(newHoliday);
+        
+        if (response.holiday) {
+          // Add to local state with proper ID from MongoDB
+          const addedHoliday = {
+            ...response.holiday,
+            id: response.holiday._id,
+            type: 'custom',
+          };
+          setCustomHolidays([...customHolidays, addedHoliday]);
+          setNewHoliday({ date: "", name: "", description: "" });
+          setShowAddHolidayModal(false);
+        } else {
+          alert(response.message || 'Failed to add holiday');
+        }
+      } catch (error) {
+        console.error('Error adding holiday:', error);
+        alert('Failed to add holiday. Please try again.');
+      }
     }
   };
 
-  const handleRemoveHoliday = (holidayDate) => {
-    setCustomHolidays(customHolidays.filter((h) => h.date !== holidayDate));
+  const handleRemoveHoliday = async (holiday) => {
+    if (!holiday.id && !holiday._id) {
+      console.error('Holiday ID not found');
+      return;
+    }
+
+    const holidayId = holiday.id || holiday._id;
+    
+    try {
+      const response = await holidaysAPI.delete(holidayId);
+      
+      if (response.message) {
+        // Remove from local state
+        setCustomHolidays(customHolidays.filter((h) => (h.id || h._id) !== holidayId));
+      } else {
+        alert('Failed to delete holiday');
+      }
+    } catch (error) {
+      console.error('Error deleting holiday:', error);
+      alert('Failed to delete holiday. Please try again.');
+    }
   };
 
   const renderCalendar = () => {
@@ -160,10 +212,10 @@ const Calendar = () => {
           {holiday && (
             <div className="holiday-info">
               <div className="holiday-name">{holiday.name}</div>
-              {isEditMode && isCEO && (
+              {isEditMode && isCEO && holiday.type === 'custom' && (
                 <button
                   className="remove-holiday-btn"
-                  onClick={() => handleRemoveHoliday(holiday.date)}
+                  onClick={() => handleRemoveHoliday(holiday)}
                   title="Remove holiday"
                 >
                   <X size={12} />

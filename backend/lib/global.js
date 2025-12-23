@@ -97,6 +97,17 @@ const getWeekOffDatesInMonth = (month, year) => {
   return weekOffDates;
 };
 
+// Role constants
+const ROLES = {
+  ADMIN: 'ADMIN',
+  CEO: 'CEO',
+  INCUBATION_MANAGER: 'INCUBATION_MANAGER',
+  ACCOUNTANT: 'ACCOUNTANT',
+  OFFICER_IN_CHARGE: 'OFFICER_IN_CHARGE',
+  FACULTY_IN_CHARGE: 'FACULTY_IN_CHARGE',
+  EMPLOYEE: 'EMPLOYEE'
+};
+
 module.exports = {
   MONTH_DAYS,
   isLeapYear,
@@ -105,4 +116,5 @@ module.exports = {
   getWeekdayCountInMonth,
   getWorkingDaysInMonth,
   getWeekOffDatesInMonth,
+  ROLES,
 };
