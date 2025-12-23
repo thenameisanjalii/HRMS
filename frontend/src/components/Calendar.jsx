@@ -9,28 +9,11 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { ROLES } from "../constants/roles";
+import { 
+  getHolidaysForYear, 
+  prefetchAdjacentYears 
+} from "../services/googleCalendar";
 import "./Calendar.css";
-
-// List of Gazetted Holidays - You can modify this list as needed
-const GAZETTED_HOLIDAYS = [
-  "Republic Day",
-  "Holi",
-  "Eid ul-Fitr",
-  "Mahavir Swami Jayanti",
-  "Good Friday",
-  "Buddha Purnima",
-  "Eid ul-Zuha",
-  "Muharram",
-  "Independence Day",
-  "Id-e-Milad",
-  "Janmashtami",
-  "Hindi Diwas",
-  "Gandhi Jayanti",
-  "Dussehra",
-  "Diwali",
-  "Guru Nanak Jayanti",
-  "Christmas",
-];
 
 const Calendar = () => {
   const { user } = useAuth();
@@ -51,7 +34,6 @@ const Calendar = () => {
 
   const isCEO = user?.role === ROLES.CEO;
 
-  // Fetch holidays from API
   useEffect(() => {
     fetchHolidays();
   }, [currentYear]);
@@ -60,68 +42,11 @@ const Calendar = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(
-        `https://jayantur13.github.io/calendar-bharat/calendar/${currentYear}.json`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch holidays");
-      }
-      const data = await response.json();
-
-      // Extract holidays from the API response structure
-      // Structure: { "2026": { "January 2026": { "January 1, 2026, Thursday": { event, type, extras } } } }
-      let allHolidays = [];
-
-      // Get the year data
-      const yearData = data[currentYear.toString()];
-
-      if (yearData && typeof yearData === "object") {
-        // Iterate through each month
-        Object.keys(yearData).forEach((monthKey) => {
-          const monthData = yearData[monthKey];
-
-          // Iterate through each date in the month
-          Object.keys(monthData).forEach((dateKey) => {
-            const holidayData = monthData[dateKey];
-
-            // Parse the date from the key (e.g., "January 1, 2026, Thursday")
-            const dateParts = dateKey.split(", ");
-            if (dateParts.length >= 2) {
-              const dateStr = `${dateParts[0]}, ${dateParts[1]}`; // "January 1, 2026"
-              const parsedDate = new Date(dateStr);
-
-              if (!isNaN(parsedDate.getTime())) {
-                // Format date as YYYY-MM-DD
-                const formattedDate = `${parsedDate.getFullYear()}-${String(
-                  parsedDate.getMonth() + 1
-                ).padStart(2, "0")}-${String(parsedDate.getDate()).padStart(
-                  2,
-                  "0"
-                )}`;
-
-                allHolidays.push({
-                  date: formattedDate,
-                  name: holidayData.event,
-                  type: holidayData.type,
-                  description: holidayData.extras,
-                });
-              }
-            }
-          });
-        });
-      }
-
-      // Filter for gazetted holidays only - show only holidays that match the GAZETTED_HOLIDAYS array
-      const gazettedHolidays = allHolidays.filter((holiday) =>
-        GAZETTED_HOLIDAYS.some(
-          (gh) =>
-            holiday.name?.toLowerCase().includes(gh.toLowerCase()) ||
-            gh.toLowerCase().includes(holiday.name?.toLowerCase() || "")
-        )
-      );
-
-      setHolidays(gazettedHolidays);
-      setEditedHolidays(gazettedHolidays);
+      const googleHolidays = await getHolidaysForYear(currentYear);
+      
+      setHolidays(googleHolidays);
+      setEditedHolidays(googleHolidays);
+      prefetchAdjacentYears(currentYear);
     } catch (err) {
       setError(err.message);
       console.error("Error fetching holidays:", err);
@@ -130,17 +55,14 @@ const Calendar = () => {
     }
   };
 
-  // Get days in month
   const getDaysInMonth = (year, month) => {
     return new Date(year, month + 1, 0).getDate();
   };
 
-  // Get first day of month (0 = Sunday, 1 = Monday, etc.)
   const getFirstDayOfMonth = (year, month) => {
     return new Date(year, month, 1).getDay();
   };
 
-  // Check if a date is a holiday
   const getHolidayForDate = (year, month, day) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(
       day
@@ -149,7 +71,6 @@ const Calendar = () => {
     return allHolidays.find((h) => h.date === dateStr);
   };
 
-  // Navigation functions
   const goToPreviousMonth = () => {
     if (currentMonth === 0) {
       setCurrentMonth(11);
@@ -174,7 +95,6 @@ const Calendar = () => {
     setCurrentMonth(today.getMonth());
   };
 
-  // Edit mode functions (CEO only)
   const handleEditMode = () => {
     setIsEditMode(true);
     setEditedHolidays([...holidays]);
@@ -183,7 +103,6 @@ const Calendar = () => {
   const handleSaveChanges = () => {
     setHolidays(editedHolidays);
     setIsEditMode(false);
-    // Here you would typically save to backend
     console.log("Saved holidays:", editedHolidays);
   };
 
@@ -204,7 +123,6 @@ const Calendar = () => {
     setCustomHolidays(customHolidays.filter((h) => h.date !== holidayDate));
   };
 
-  // Render calendar grid
   const renderCalendar = () => {
     const daysInMonth = getDaysInMonth(currentYear, currentMonth);
     const firstDay = getFirstDayOfMonth(currentYear, currentMonth);
@@ -213,12 +131,10 @@ const Calendar = () => {
     const isCurrentMonth =
       today.getFullYear() === currentYear && today.getMonth() === currentMonth;
 
-    // Empty cells for days before month starts
     for (let i = 0; i < firstDay; i++) {
       days.push(<div key={`empty-${i}`} className="calendar-day empty"></div>);
     }
 
-    // Days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const holiday = getHolidayForDate(currentYear, currentMonth, day);
       const isToday = isCurrentMonth && today.getDate() === day;
@@ -358,7 +274,6 @@ const Calendar = () => {
         </>
       )}
 
-      {/* Holiday List */}
       <div className="holiday-list">
         <h3>
           Holidays in {monthNames[currentMonth]} {currentYear}
@@ -403,7 +318,6 @@ const Calendar = () => {
         </div>
       </div>
 
-      {/* Add Holiday Modal */}
       {showAddHolidayModal && isCEO && (
         <div
           className="modal-overlay"
