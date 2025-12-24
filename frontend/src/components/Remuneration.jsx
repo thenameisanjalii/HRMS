@@ -34,7 +34,28 @@ const Remuneration = () => {
     "November",
     "December",
   ];
+
+  const month_per_holiday = {
+    "Jan": 1,
+    "Mar": 3,
+    "Apr": 1,
+    "May": 2,
+    "Jun": 1,
+    "Aug": 2,
+    "Sept": 2,
+    "Oct": 2,
+    "Nov": 2,
+    "Dec": 1,
+  };
+
+  const monthAbbreviations = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"
+  ];
+
   const currentMonth = monthNames[currentDate.getMonth()];
+  const currentMonthAbbr = monthAbbreviations[currentDate.getMonth()];
+  const currentMonthHolidays = month_per_holiday[currentMonthAbbr] || 0;
   const currentYear = currentDate.getFullYear();
 
   // Calculate total days in current month
@@ -550,7 +571,7 @@ const Remuneration = () => {
                     )}
                   </td>
                   <td>{totalWeekendDays}</td>
-                  <td>19</td>
+                  <td>{currentMonthHolidays}</td>
                   <td>
                     {loadingLeaves ? (
                       <span className="loading-text">Loading...</span>
