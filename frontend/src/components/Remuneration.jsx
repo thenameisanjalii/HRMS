@@ -15,7 +15,6 @@ const Remuneration = () => {
   const [casualLeaveData, setCasualLeaveData] = useState({});
   const [lwpData, setLwpData] = useState({});
   const [loadingLeaves, setLoadingLeaves] = useState(true);
-  
 
   const isFacultyInCharge = user?.role === "FACULTY_IN_CHARGE";
   let netPayableDays;
@@ -38,21 +37,31 @@ const Remuneration = () => {
   ];
 
   const month_per_holiday = {
-    "Jan": 1,
-    "Mar": 3,
-    "Apr": 1,
-    "May": 2,
-    "Jun": 1,
-    "Aug": 2,
-    "Sept": 2,
-    "Oct": 2,
-    "Nov": 2,
-    "Dec": 1,
+    Jan: 1,
+    Mar: 3,
+    Apr: 1,
+    May: 2,
+    Jun: 1,
+    Aug: 2,
+    Sept: 2,
+    Oct: 2,
+    Nov: 2,
+    Dec: 1,
   };
 
   const monthAbbreviations = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sept",
+    "Oct",
+    "Nov",
+    "Dec",
   ];
 
   const currentMonth = monthNames[currentDate.getMonth()];
@@ -391,9 +400,9 @@ const Remuneration = () => {
   const calculatePayableDays = (emp) => {
     const daysWorked = attendanceData[emp.employeeId] || 0;
     const casualLeave = casualLeaveData[emp.employeeId] || 0;
-    const holidays = parseFloat(emp.holidays) || 0;
+    const holidays = currentMonthHolidays || 0;
     netPayableDays = daysWorked + casualLeave + totalWeekendDays + holidays;
-    
+
     // Payable Days = Days Worked + Casual Leave + Weekly Offs + Holidays
     return netPayableDays;
   };
@@ -401,11 +410,11 @@ const Remuneration = () => {
   const calculateNetPayable = (emp) => {
     const daysWorked = attendanceData[emp.employeeId] || 0;
     const grossRemuneration = parseFloat(emp.grossRemuneration) || 0;
-    
+
     // Net Payable = (Gross Salary / Total Days in Month) × Days Worked
     if (totalDaysInMonth === 0) return 0;
     const netPayable = (grossRemuneration / totalDaysInMonth) * netPayableDays;
-    
+
     return netPayable.toFixed(2);
   };
 
