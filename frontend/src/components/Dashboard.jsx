@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { ROLES, ROLE_HIERARCHY } from "../constants/roles";
-import { dashboardAPI } from "../services/api";
+import { dashboardAPI, getPhotoUrl } from "../services/api";
 import VariableRemuneration from "./VariableRemuneration";
 import Remuneration from "./Remuneration";
 import PeerRating from "./PeerRating";
@@ -380,7 +380,20 @@ const Dashboard = ({ onLogout }) => {
               <span className="current-date">{formatDateTime()}</span>
               <div className="user-profile-preview">
                 <div className="user-avatar">
-                  {user?.username?.[0]?.toUpperCase() || "U"}
+                  {user?.profile?.photo ? (
+                    <img 
+                      src={getPhotoUrl(user.profile.photo)} 
+                      alt="Profile" 
+                      style={{ 
+                        width: '100%', 
+                        height: '100%', 
+                        objectFit: 'cover',
+                        borderRadius: '50%'
+                      }} 
+                    />
+                  ) : (
+                    user?.username?.[0]?.toUpperCase() || "U"
+                  )}
                 </div>
                 <span className="user-name">{user?.username || "User"}</span>
               </div>

@@ -1,11 +1,13 @@
 import { useState, useRef } from 'react';
 import { ArrowLeft, Camera, Save, Upload, FileText, Trash2, Download } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { usersAPI, getPhotoUrl } from '../services/api';
 import './ProfileEdit.css';
 
 const ProfileEdit = ({ onBack }) => {
     const { user, login } = useAuth();
     const fileInputRef = useRef(null);
+    const photoInputRef = useRef(null);
     const [formData, setFormData] = useState({
         username: user?.username || '',
         email: user?.email || '',
@@ -17,6 +19,11 @@ const ProfileEdit = ({ onBack }) => {
         address: ''
     });
     const [documents, setDocuments] = useState([]);
+    const [profilePhoto, setProfilePhoto] = useState(user?.profile?.photo || null);
+    const [photoPreview, setPhotoPreview] = useState(
+        user?.profile?.photo ? getPhotoUrl(user.profile.photo) : null
+    );
+    const [uploading, setUploading] = useState(false);
 
     const handleChange = (e) => {
         setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -38,6 +45,55 @@ const ProfileEdit = ({ onBack }) => {
         setDocuments(prev => prev.filter(doc => doc.id !== id));
     };
 
+    const handlePhotoChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image file');
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Image size should be less than 5MB');
+            return;
+        }
+
+        // Create preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setPhotoPreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+
+        // Upload to server
+        setUploading(true);
+        try {
+            const result = await usersAPI.uploadProfilePhoto(user._id || user.id, file);
+            if (result.success) {
+                setProfilePhoto(result.photoPath);
+                alert('Profile photo uploaded successfully!');
+                // Update user in context
+                login({ 
+                    ...user, 
+                    profile: { 
+                        ...user.profile, 
+                        photo: result.photoPath 
+                    } 
+                });
+            } else {
+                alert('Failed to upload photo: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Error uploading photo:', error);
+            alert('Error uploading photo. Please try again.');
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
         login({ ...user, username: formData.username, email: formData.email });
@@ -57,12 +113,37 @@ const ProfileEdit = ({ onBack }) => {
             <div className="profile-edit-content">
                 <div className="profile-avatar-section">
                     <div className="profile-avatar-large">
-                        {formData.username ? formData.username.substring(0, 2).toUpperCase() : 'US'}
+                        {photoPreview ? (
+                            <img 
+                                src={photoPreview} 
+                                alt="Profile" 
+                                style={{ 
+                                    width: '100%', 
+                                    height: '100%', 
+                                    objectFit: 'cover',
+                                    borderRadius: '50%'
+                                }} 
+                            />
+                        ) : (
+                            formData.username ? formData.username.substring(0, 2).toUpperCase() : 'US'
+                        )}
                     </div>
-                    <button className="change-avatar-btn">
+                    <button 
+                        type="button"
+                        className="change-avatar-btn" 
+                        onClick={() => photoInputRef.current.click()}
+                        disabled={uploading}
+                    >
                         <Camera size={16} />
-                        <span>Change Photo</span>
+                        <span>{uploading ? 'Uploading...' : 'Change Photo'}</span>
                     </button>
+                    <input
+                        type="file"
+                        ref={photoInputRef}
+                        onChange={handlePhotoChange}
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                    />
                 </div>
 
                 <form onSubmit={handleSubmit} className="profile-form">

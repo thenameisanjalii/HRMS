@@ -1,8 +1,14 @@
 const API_URL = 'http://localhost:5000/api';
+const BASE_URL = 'http://localhost:5000';
 
 const getAuthHeader = () => {
     const token = localStorage.getItem('token');
     return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+export const getPhotoUrl = (photoPath) => {
+    if (!photoPath) return null;
+    return `${BASE_URL}${photoPath}`;
 };
 
 export const authAPI = {
@@ -74,6 +80,21 @@ export const usersAPI = {
         const response = await fetch(`${API_URL}/users/${id}`, {
             method: 'DELETE',
             headers: { ...getAuthHeader() }
+        });
+        return response.json();
+    },
+
+    uploadProfilePhoto: async (userId, photoFile) => {
+        const formData = new FormData();
+        formData.append('photo', photoFile);
+
+        const response = await fetch(`${API_URL}/users/${userId}/upload-photo`, {
+            method: 'POST',
+            headers: {
+                ...getAuthHeader()
+                // Don't set Content-Type - browser will set it with boundary for FormData
+            },
+            body: formData
         });
         return response.json();
     }

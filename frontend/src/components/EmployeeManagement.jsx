@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Search, Plus, Filter, MoreVertical, Mail, Phone, MapPin, Briefcase, X, Save } from 'lucide-react';
-import { usersAPI, authAPI } from '../services/api';
+import { usersAPI, authAPI, getPhotoUrl } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { ROLES } from '../constants/roles';
 import './EmployeeManagement.css';
@@ -222,7 +222,20 @@ const EmployeeManagement = () => {
 
                         <div className="emp-profile">
                             <div className="emp-avatar">
-                                <span>{getAvatar(emp)}</span>
+                                {emp.profile?.photo ? (
+                                    <img 
+                                        src={getPhotoUrl(emp.profile.photo)} 
+                                        alt={getEmployeeName(emp)} 
+                                        style={{ 
+                                            width: '100%', 
+                                            height: '100%', 
+                                            objectFit: 'cover',
+                                            borderRadius: '50%'
+                                        }} 
+                                    />
+                                ) : (
+                                    <span>{getAvatar(emp)}</span>
+                                )}
                             </div>
                             <h3>{getEmployeeName(emp)}</h3>
                             <span className="emp-role">{emp.employment?.designation || emp.role}</span>

@@ -46,28 +46,36 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = async (username, password) => {
-    try {
-      const data = await authAPI.login(username, password);
-      if (data.success) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("role", data.user.role);
-        setUser({
-          id: data.user.id || data.user._id,
-          username: data.user.username,
-          email: data.user.email,
-          role: data.user.role,
-          profile: data.user.profile,
-          employment: data.user.employment,
-          leaveBalance: data.user.leaveBalance,
-          isAdmin: data.user.role === "ADMIN",
-        });
-        return { success: true };
-      }
-      return { success: false, message: data.message || "Login failed" };
-    } catch (error) {
-      return { success: false, message: "Network error. Please try again." };
+  const login = (usernameOrUserObject, password) => {
+    // If it's an object, it's being used to update user (from ProfileEdit)
+    if (typeof usernameOrUserObject === 'object') {
+      setUser(usernameOrUserObject);
+      return Promise.resolve({ success: true });
     }
+    
+    // Otherwise it's a normal login
+    return authAPI.login(usernameOrUserObject, password)
+      .then((data) => {
+        if (data.success) {
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("role", data.user.role);
+          setUser({
+            id: data.user.id || data.user._id,
+            username: data.user.username,
+            email: data.user.email,
+            role: data.user.role,
+            profile: data.user.profile,
+            employment: data.user.employment,
+            leaveBalance: data.user.leaveBalance,
+            isAdmin: data.user.role === "ADMIN",
+          });
+          return { success: true };
+        }
+        return { success: false, message: data.message || "Login failed" };
+      })
+      .catch((error) => {
+        return { success: false, message: "Network error. Please try again." };
+      });
   };
 
   const logout = () => {
