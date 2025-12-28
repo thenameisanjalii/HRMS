@@ -2,23 +2,30 @@
  * =============================================================================
  * PERMISSIONS & ACCESS CONTROL SYSTEM
  * =============================================================================
- * This file centralizes all component and feature access permissions.
- * Roles are now fetched dynamically from the database via AuthContext.
+ * This file provides navigation items configuration for the application.
  * 
- * TO CONFIGURE ACCESS FOR A NEW FEATURE:
- * 1. Add a new entry to COMPONENT_PERMISSIONS or FEATURE_PERMISSIONS
- * 2. Specify allowed roles array (use role strings like 'ADMIN', 'CEO')
- * 3. Optionally add custom validation function for complex rules
+ * IMPORTANT: Permissions are now managed dynamically through the database!
+ * - Role permissions are stored in MongoDB (RolePermission collection)
+ * - Access checking is done via AuthContext (canAccessComponent, canAccessFeature)
+ * - Admin Panel provides UI to edit role permissions in real-time
  * 
- * TO ADD A NEW COMPONENT:
- * 1. Add entry to COMPONENT_PERMISSIONS with allowed roles
- * 2. Update NAVIGATION_ITEMS if it should appear in sidebar
- * 3. Roles are validated against database at runtime
+ * The hardcoded permission definitions below are DEPRECATED and kept only
+ * for reference and fallback purposes.
+ * 
+ * TO CONFIGURE ACCESS:
+ * 1. Go to Admin Panel in the application
+ * 2. Select a role to edit
+ * 3. Check/uncheck components and features
+ * 4. Save changes - they persist to database immediately
+ * 
+ * TO ADD A NEW COMPONENT OR FEATURE:
+ * 1. Add it to NAVIGATION_ITEMS (for sidebar navigation)
+ * 2. Add it to backend/routes/admin.js GET /components endpoint
+ * 3. Run backend/seedRoles.js to update all roles with the new permission
  * =============================================================================
  */
 
-// Helper constants for common role groups (for convenience)
-// Note: These are just helpers. Actual roles come from database via AuthContext
+// Helper constants for common role groups (for reference)
 export const ROLE_GROUPS_HELPER = {
     ALL: ['ADMIN', 'CEO', 'INCUBATION_MANAGER', 'ACCOUNTANT', 'OFFICER_IN_CHARGE', 'FACULTY_IN_CHARGE', 'EMPLOYEE'],
     MANAGERS: ['ADMIN', 'CEO', 'INCUBATION_MANAGER', 'ACCOUNTANT', 'OFFICER_IN_CHARGE', 'FACULTY_IN_CHARGE'],
@@ -29,125 +36,20 @@ export const ROLE_GROUPS_HELPER = {
     STAFF: ['EMPLOYEE']
 };
 
+/**
+ * DEPRECATED: Component permissions are now stored in database
+ * This is kept for fallback compatibility only
+ */
 export const COMPONENT_PERMISSIONS = {
-    dashboard: {
-        allowedRoles: ROLE_GROUPS_HELPER.ALL,
-        description: 'Main dashboard view'
-    },
-    employees: {
-        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS,
-        description: 'View and manage employee records'
-    },
-    attendance: {
-        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS,
-        description: 'View and manage attendance records'
-    },
-    leave: {
-        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS,
-        description: 'Approve/reject leave requests'
-    },
-    salary: {
-        allowedRoles: ['ACCOUNTANT', 'EMPLOYEE'],
-        description: 'View salary information'
-    },
-    'peer-rating': {
-        allowedRoles: [
-            'ADMIN',
-            'CEO',
-            'INCUBATION_MANAGER',
-            'ACCOUNTANT',
-            'OFFICER_IN_CHARGE'
-        ],
-        description: 'Rate peer performance',
-        customCheck: (user) => user?.role !== 'FACULTY_IN_CHARGE'
-    },
-    'variable-remuneration': {
-        allowedRoles: ['FACULTY_IN_CHARGE'],
-        description: 'Manage variable remuneration for faculty'
-    },
-    remuneration: {
-        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS,
-        description: 'View remuneration details'
-    },
-    calendar: {
-        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS,
-        description: 'View and manage calendar'
-    },
-    efiling: {
-        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS,
-        description: 'Electronic file management'
-    },
-    settings: {
-        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS,
-        description: 'System settings and configuration'
-    },
-    profile: {
-        allowedRoles: ROLE_GROUPS_HELPER.ALL,
-        description: 'Edit user profile'
-    },
-    admin: {
-        allowedRoles: ['ADMIN'],
-        description: 'Admin configuration panel for role and permission management'
-    }
+    // This object is deprecated - permissions come from database via AuthContext
 };
 
-// ============= FEATURE-LEVEL PERMISSIONS =============
 /**
- * Granular permissions for specific features within components
+ * DEPRECATED: Feature permissions are now stored in database  
+ * This is kept for fallback compatibility only
  */
 export const FEATURE_PERMISSIONS = {
-    'employee.create': {
-        allowedRoles: ['ADMIN', 'CEO'],
-        description: 'Create new employee accounts'
-    },
-    'employee.edit': {
-        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS,
-        description: 'Edit employee information'
-    },
-    'employee.delete': {
-        allowedRoles: ['ADMIN', 'CEO'],
-        description: 'Delete employee accounts'
-    },
-    'employee.viewAll': {
-        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS,
-        description: 'View all employees'
-    },
-    'salary.viewAll': {
-        allowedRoles: ['ACCOUNTANT'],
-        description: 'View all employee salaries'
-    },
-    'salary.viewOwn': {
-        allowedRoles: ['EMPLOYEE'],
-        description: 'View own salary only'
-    },
-    'salary.edit': {
-        allowedRoles: ['ACCOUNTANT'],
-        description: 'Edit salary information'
-    },
-    'leave.approve': {
-        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS,
-        description: 'Approve leave requests'
-    },
-    'leave.apply': {
-        allowedRoles: ROLE_GROUPS_HELPER.ALL,
-        description: 'Apply for leave'
-    },
-    'attendance.mark': {
-        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS,
-        description: 'Mark attendance for employees'
-    },
-    'attendance.viewReports': {
-        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS,
-        description: 'View attendance reports'
-    },
-    'remuneration.view': {
-        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS,
-        description: 'View remuneration information'
-    },
-    'remuneration.variable': {
-        allowedRoles: ['FACULTY_IN_CHARGE'],
-        description: 'Manage variable remuneration'
-    }
+    // This object is deprecated - permissions come from database via AuthContext
 };
 
 // ============= NAVIGATION/SIDEBAR ITEMS =============
@@ -249,72 +151,64 @@ export const NAVIGATION_ITEMS = [
     }
 ];
 
+/**
+ * DEPRECATED: Use canAccessComponent from AuthContext instead
+ * This function is kept for fallback compatibility only
+ */
 export const canAccessComponent = (componentId, user) => {
-    if (!user || !user.role) return false;
-    
-    const permission = COMPONENT_PERMISSIONS[componentId];
-    if (!permission) return false;
-    
-    // Check role-based access
-    const hasRoleAccess = permission.allowedRoles.includes(user.role);
-    
-    // If there's a custom check, apply it
-    if (permission.customCheck) {
-        return hasRoleAccess && permission.customCheck(user);
-    }
-    
-    return hasRoleAccess;
+    console.warn('canAccessComponent from permissions.js is deprecated. Use canAccessComponent from AuthContext.');
+    return false;
 };
 
+/**
+ * DEPRECATED: Use canAccessFeature from AuthContext instead
+ * This function is kept for fallback compatibility only
+ */
 export const canAccessFeature = (featureId, user) => {
-    if (!user || !user.role) return false;
-    
-    const permission = FEATURE_PERMISSIONS[featureId];
-    if (!permission) return false;
-    
-    return permission.allowedRoles.includes(user.role);
+    console.warn('canAccessFeature from permissions.js is deprecated. Use canAccessFeature from AuthContext.');
+    return false;
 };
 
+/**
+ * Get navigation items accessible to current user based on database permissions
+ * Uses the canAccessComponentFn from AuthContext to check database permissions
+ */
 export const getAccessibleNavItems = (user, canAccessComponentFn) => {
     if (!user || !user.role) return [];
     
-    // If canAccessComponentFn is provided, use database permissions
+    // Use database permissions if function provided
     if (canAccessComponentFn) {
         return NAVIGATION_ITEMS.filter(item => {
             return canAccessComponentFn(item.view);
         });
     }
     
-    // Fallback to hardcoded permissions (for backward compatibility)
-    return NAVIGATION_ITEMS.filter(item => {
-        const hasRoleAccess = item.allowedRoles.includes(user.role);
-        if (item.customCheck) {
-            return hasRoleAccess && item.customCheck(user);
-        }
-        return hasRoleAccess;
-    });
+    // Fallback: return empty if no permission function (forces database usage)
+    console.warn('getAccessibleNavItems called without canAccessComponentFn. Using database permissions is required.');
+    return [];
 };
 
+/**
+ * DEPRECATED: Role permissions are now in database
+ * This function returns empty objects for backward compatibility
+ */
 export const getRolePermissions = (role) => {
-    const components = Object.keys(COMPONENT_PERMISSIONS).filter(
-        key => COMPONENT_PERMISSIONS[key].allowedRoles.includes(role)
-    );
-    
-    const features = Object.keys(FEATURE_PERMISSIONS).filter(
-        key => FEATURE_PERMISSIONS[key].allowedRoles.includes(role)
-    );
-    
-    return { components, features };
+    console.warn('getRolePermissions is deprecated. Fetch from database via AuthContext.');
+    return { components: [], features: [] };
 };
 
+/**
+ * DEPRECATED: Use canAccessComponent/canAccessFeature from AuthContext
+ */
 export const hasAllPermissions = (permissionIds, user) => {
-    return permissionIds.every(id => 
-        canAccessComponent(id, user) || canAccessFeature(id, user)
-    );
+    console.warn('hasAllPermissions is deprecated. Use AuthContext permission functions.');
+    return false;
 };
 
+/**
+ * DEPRECATED: Use canAccessComponent/canAccessFeature from AuthContext
+ */
 export const hasAnyPermission = (permissionIds, user) => {
-    return permissionIds.some(id => 
-        canAccessComponent(id, user) || canAccessFeature(id, user)
-    );
+    console.warn('hasAnyPermission is deprecated. Use AuthContext permission functions.');
+    return false;
 };

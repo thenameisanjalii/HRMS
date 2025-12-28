@@ -7,7 +7,7 @@ import jsPDF from 'jspdf';
 import './Salary.css';
 
 const Salary = () => {
-    const { user } = useAuth();
+    const { user, canAccessFeature } = useAuth();
     const [employees, setEmployees] = useState([]);
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -15,7 +15,10 @@ const Salary = () => {
     const [searchName, setSearchName] = useState('');
     const contentRef = useRef(null);
     
-    const isAccountant = user?.role === 'ACCOUNTANT';
+    // Use database permissions
+    const canViewAllSalaries = canAccessFeature('salary.viewAll');
+    const canViewOwnSalary = canAccessFeature('salary.viewOwn');
+    const canEditSalary = canAccessFeature('salary.edit');
 
     // Get current month and year
     const currentDate = new Date();
@@ -27,8 +30,8 @@ const Salary = () => {
     useEffect(() => {
         const fetchEmployees = async () => {
             try {
-                if (isAccountant) {
-                    // Accountant can see all employees
+                if (canViewAllSalaries) {
+                    // Can see all employees
                     const response = await usersAPI.getAll();
                     if (response.success && response.users) {
                         const filteredUsers = response.users.filter(
@@ -52,7 +55,7 @@ const Salary = () => {
 
                         setEmployees(employeesWithSalary);
                     }
-                } else {
+                } else if (canViewOwnSalary || !canViewAllSalaries) {
                     // Regular employee can only see their own salary
                     const response = await authAPI.getProfile();
                     if (response.success && response.user) {
@@ -84,7 +87,7 @@ const Salary = () => {
         };
 
         fetchEmployees();
-    }, [isAccountant]);
+    }, [canViewAllSalaries, canViewOwnSalary]);
 
     useEffect(() => {
         if (selectedEmployee) {
@@ -221,10 +224,8 @@ const Salary = () => {
 
     return (
         <div className="salary-page-container">
-            {isAccountant && (
-                <div className="salary-actions">
-                    <div className="employee-selector">
-                        <label>Enter Employee Name:</label>
+            {canViewAllSalaries && (
+                <div className="salary-actions">\n                    <div className="employee-selector">\n                        <label>Enter Employee Name:</label>
                         <div className="search-input-wrapper">
                             <input
                                 type="text"
@@ -269,7 +270,7 @@ const Salary = () => {
                 </div>
             )}
 
-            {!isAccountant && selectedEmployee && (
+            {!canViewAllSalaries && selectedEmployee && (
                 <div className="salary-actions">
                     <div className="action-buttons">
                         <button
@@ -283,7 +284,7 @@ const Salary = () => {
                 </div>
             )}
 
-            {isAccountant && !selectedEmployee && <div className="no-selection">Please enter an employee name to view the salary slip.</div>}
+            {canViewAllSalaries && !selectedEmployee && <div className="no-selection">Please enter an employee name to view the salary slip.</div>}
 
             {selectedEmployee && (
                 <div className="salary-slip-container" ref={contentRef}>
@@ -344,7 +345,7 @@ const Salary = () => {
                             <tr>
                                 <td>Fixed Pay</td>
                                 <td>
-                                    {isAccountant ? (
+                                    {canEditSalary ? (
                                         <input
                                             type="number"
                                             className="editable-field"
@@ -359,7 +360,7 @@ const Salary = () => {
                                 </td>
                                 <td>TDS</td>
                                 <td>
-                                    {isAccountant ? (
+                                    {canEditSalary ? (
                                         <input
                                             type="number"
                                             className="editable-field"
@@ -376,7 +377,7 @@ const Salary = () => {
                             <tr>
                                 <td>Variable Pay</td>
                                 <td>
-                                    {isAccountant ? (
+                                    {canEditSalary ? (
                                         <input
                                             type="number"
                                             className="editable-field"
@@ -391,7 +392,7 @@ const Salary = () => {
                                 </td>
                                 <td>NPS</td>
                                 <td>
-                                    {isAccountant ? (
+                                    {canEditSalary ? (
                                         <input
                                             type="number"
                                             className="editable-field"
@@ -408,7 +409,7 @@ const Salary = () => {
                             <tr>
                                 <td>Others</td>
                                 <td>
-                                    {isAccountant ? (
+                                    {canEditSalary ? (
                                         <input
                                             type="number"
                                             className="editable-field"
@@ -423,7 +424,7 @@ const Salary = () => {
                                 </td>
                                 <td>Other Ded.</td>
                                 <td>
-                                    {isAccountant ? (
+                                    {canEditSalary ? (
                                         <input
                                             type="number"
                                             className="editable-field"

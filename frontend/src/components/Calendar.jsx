@@ -16,7 +16,7 @@ import { holidaysAPI } from "../services/api";
 import "./Calendar.css";
 
 const Calendar = () => {
-  const { user } = useAuth();
+  const { user, canAccessFeature } = useAuth();
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [holidays, setHolidays] = useState([]);
@@ -32,7 +32,8 @@ const Calendar = () => {
     description: "",
   });
 
-  const isCEO = user?.role === 'CEO';
+  // Use database permission for calendar editing
+  const canEditCalendar = canAccessFeature('calendar.edit') || user?.role === 'CEO' || user?.role === 'ADMIN';
 
   // Fetch holidays from Google Calendar API and custom holidays from backend
   useEffect(() => {
@@ -211,7 +212,7 @@ const Calendar = () => {
           {holiday && (
             <div className="holiday-info">
               <div className="holiday-name">{holiday.name}</div>
-              {isEditMode && isCEO && holiday.type === 'custom' && (
+              {isEditMode && canEditCalendar && holiday.type === 'custom' && (
                 <button
                   className="remove-holiday-btn"
                   onClick={() => handleRemoveHoliday(holiday)}
@@ -254,13 +255,13 @@ const Calendar = () => {
           <h2>Company Calendar - Gazetted Holidays</h2>
         </div>
         <div className="calendar-actions">
-          {isCEO && !isEditMode && (
+          {canEditCalendar && !isEditMode && (
             <button className="btn-edit" onClick={handleEditMode}>
               <Edit2 size={16} />
               Edit Calendar
             </button>
           )}
-          {isCEO && isEditMode && (
+          {canEditCalendar && isEditMode && (
             <>
               <button className="btn-save" onClick={handleSaveChanges}>
                 <Save size={16} />
@@ -299,7 +300,7 @@ const Calendar = () => {
         </button>
       </div>
 
-      {isEditMode && isCEO && (
+      {isEditMode && canEditCalendar && (
         <div className="edit-toolbar">
           <button
             className="btn-add-holiday"
@@ -369,7 +370,7 @@ const Calendar = () => {
         </div>
       </div>
 
-      {showAddHolidayModal && isCEO && (
+      {showAddHolidayModal && canEditCalendar && (
         <div
           className="modal-overlay"
           onClick={() => setShowAddHolidayModal(false)}

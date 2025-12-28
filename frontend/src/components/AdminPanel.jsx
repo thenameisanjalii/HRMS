@@ -47,8 +47,10 @@ const AdminPanel = () => {
             
             if (rolesData.success) setRoles(rolesData.roles);
             if (componentsData.success) {
+                console.log('Components data received:', componentsData);
+                console.log('Features from backend:', componentsData.features);
                 setComponents(componentsData.components);
-                setFeatures(componentsData.features);
+                setFeatures(componentsData.features || []);
                 setRoleGroups(componentsData.roleGroups || []);
             }
             if (statsData.success) setStats(statsData.stats);
@@ -102,6 +104,30 @@ const AdminPanel = () => {
         return comp?.hasAccess || false;
     };
 
+    const handleFeatureToggle = (featureId) => {
+        const featureName = features.find(f => f.id === featureId)?.name || featureId;
+        const existingIndex = editForm.featureAccess.findIndex(f => f.featureId === featureId);
+        
+        if (existingIndex >= 0) {
+            const updated = [...editForm.featureAccess];
+            updated[existingIndex].hasAccess = !updated[existingIndex].hasAccess;
+            setEditForm({ ...editForm, featureAccess: updated });
+        } else {
+            setEditForm({
+                ...editForm,
+                featureAccess: [
+                    ...editForm.featureAccess,
+                    { featureId, featureName, hasAccess: true }
+                ]
+            });
+        }
+    };
+
+    const hasFeatureAccess = (featureId) => {
+        const feat = editForm.featureAccess.find(f => f.featureId === featureId);
+        return feat?.hasAccess || false;
+    };
+
     const handleRoleGroupSelect = (roleGroupId) => {
         const roleGroup = roleGroups.find(rg => rg.id === roleGroupId);
         if (!roleGroup) return;
@@ -142,7 +168,22 @@ const AdminPanel = () => {
             componentAccess: updatedComponentAccess
         });
 
-        showNotification(grant ? 'Granted all access' : 'Revoked all access', 'success');
+        showNotification(grant ? 'Granted all component access' : 'Revoked all component access', 'success');
+    };
+
+    const handleBulkFeatureAccess = (grant) => {
+        const updatedFeatureAccess = features.map(feature => ({
+            featureId: feature.id,
+            featureName: feature.name,
+            hasAccess: grant
+        }));
+
+        setEditForm({
+            ...editForm,
+            featureAccess: updatedFeatureAccess
+        });
+
+        showNotification(grant ? 'Granted all feature access' : 'Revoked all feature access', 'success');
     };
 
     const handleSaveRole = async () => {
@@ -510,6 +551,74 @@ const AdminPanel = () => {
                                                 </div>
                                             );
                                         })}
+                                    </div>
+                                </div>
+
+                                {/* Feature Access */}
+                                <div className="editor-section">
+                                    <div className="section-header-with-actions">
+                                        <h3>Feature Access</h3>
+                                        <div className="section-actions">
+                                            <button 
+                                                className="admin-btn-small admin-btn-success"
+                                                onClick={() => handleBulkFeatureAccess(true)}
+                                                disabled={!isEditing}
+                                                type="button"
+                                            >
+                                                Grant All
+                                            </button>
+                                            <button 
+                                                className="admin-btn-small admin-btn-danger"
+                                                onClick={() => handleBulkFeatureAccess(false)}
+                                                disabled={!isEditing}
+                                                type="button"
+                                            >
+                                                Revoke All
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="permissions-grid">
+                                        {features.length === 0 ? (
+                                            <div className="no-features-message" style={{
+                                                padding: '2rem',
+                                                textAlign: 'center',
+                                                color: '#666',
+                                                backgroundColor: '#f8f9fa',
+                                                borderRadius: '8px',
+                                                gridColumn: '1 / -1'
+                                            }}>
+                                                <p>No features found in database. Features from all roles will appear here.</p>
+                                                <p style={{ fontSize: '0.9em', marginTop: '0.5rem' }}>
+                                                    Run <code>node backend/seedRoles.js</code> to seed initial features.
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            features.map((feature) => {
+                                                const defaultGroup = roleGroups.find(rg => rg.id === feature.defaultRoleGroup);
+                                                return (
+                                                    <div key={feature.id} className="permission-item">
+                                                        <label className="permission-label">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={hasFeatureAccess(feature.id)}
+                                                                onChange={() => handleFeatureToggle(feature.id)}
+                                                                disabled={!isEditing}
+                                                            />
+                                                            <div className="permission-info">
+                                                                <span className="permission-name">{feature.name}</span>
+                                                                <span className="permission-desc">{feature.description}</span>
+                                                                {defaultGroup && (
+                                                                    <span className="permission-default-group">
+                                                                        Default: {defaultGroup.name}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </label>
+                                                    </div>
+                                                );
+                                            })
+                                        )}
                                     </div>
                                 </div>
 

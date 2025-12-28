@@ -182,19 +182,28 @@ router.get('/components', protect, isAdmin, async (req, res) => {
             { id: 'admin', name: 'Admin Panel', description: 'Admin configuration panel', icon: 'Shield', defaultRoleGroup: 'TOP_MANAGEMENT' }
         ];
         
-        const features = [
-            { id: 'employee.create', name: 'Create Employee', description: 'Create new employee accounts', defaultRoleGroup: 'TOP_MANAGEMENT' },
-            { id: 'employee.edit', name: 'Edit Employee', description: 'Edit employee information', defaultRoleGroup: 'MANAGERS' },
-            { id: 'employee.delete', name: 'Delete Employee', description: 'Delete employee accounts', defaultRoleGroup: 'TOP_MANAGEMENT' },
-            { id: 'employee.viewAll', name: 'View All Employees', description: 'View all employees', defaultRoleGroup: 'MANAGERS' },
-            { id: 'salary.viewAll', name: 'View All Salaries', description: 'View all employee salaries', defaultRoleGroup: 'FINANCE' },
-            { id: 'salary.viewOwn', name: 'View Own Salary', description: 'View own salary only', defaultRoleGroup: 'STAFF' },
-            { id: 'salary.edit', name: 'Edit Salary', description: 'Edit salary information', defaultRoleGroup: 'FINANCE' },
-            { id: 'leave.approve', name: 'Approve Leave', description: 'Approve leave requests', defaultRoleGroup: 'MANAGERS' },
-            { id: 'leave.apply', name: 'Apply Leave', description: 'Apply for leave', defaultRoleGroup: 'ALL' },
-            { id: 'attendance.mark', name: 'Mark Attendance', description: 'Mark attendance for employees', defaultRoleGroup: 'MANAGERS' },
-            { id: 'attendance.viewReports', name: 'View Attendance Reports', description: 'View attendance reports', defaultRoleGroup: 'MANAGERS' }
-        ];
+        // Fetch all unique features from database roles
+        const roles = await RolePermission.find();
+        const featuresMap = new Map();
+        
+        // Aggregate all unique features from all roles
+        roles.forEach(role => {
+            if (role.featureAccess && Array.isArray(role.featureAccess)) {
+                role.featureAccess.forEach(feature => {
+                    if (feature.featureId && !featuresMap.has(feature.featureId)) {
+                        featuresMap.set(feature.featureId, {
+                            id: feature.featureId,
+                            name: feature.featureName || feature.featureId,
+                            description: feature.description || `Feature: ${feature.featureName || feature.featureId}`,
+                            defaultRoleGroup: feature.defaultRoleGroup || 'MANAGERS'
+                        });
+                    }
+                });
+            }
+        });
+        
+        // Convert map to array and sort by ID
+        const features = Array.from(featuresMap.values()).sort((a, b) => a.id.localeCompare(b.id));
         
         res.json({ success: true, components, features, roleGroups });
     } catch (error) {

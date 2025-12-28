@@ -7,7 +7,7 @@ import { Download, Save } from "lucide-react";
 import { usersAPI, attendanceAPI, leaveAPI } from "../services/api";
 
 const Remuneration = () => {
-  const { user } = useAuth();
+  const { user, canAccessFeature } = useAuth();
   const [saving, setSaving] = useState(false);
   const contentRef = useRef(null);
   const [attendanceData, setAttendanceData] = useState({});
@@ -16,7 +16,9 @@ const Remuneration = () => {
   const [lwpData, setLwpData] = useState({});
   const [loadingLeaves, setLoadingLeaves] = useState(true);
 
-  const isFacultyInCharge = user?.role === "FACULTY_IN_CHARGE";
+  // Use database permission
+  const canViewRemuneration = canAccessFeature('remuneration.view');
+  const canEditRemuneration = canAccessFeature('remuneration.edit');
   let netPayableDays;
 
   // Current month and year
@@ -361,7 +363,7 @@ const Remuneration = () => {
   ]);
 
   const handleChange = (id, field, value) => {
-    if (!isFacultyInCharge) return;
+    if (!canEditRemuneration) return;
     setEmployees(
       employees.map((emp) => (emp.id === id ? { ...emp, [field]: value } : emp))
     );
@@ -384,7 +386,7 @@ const Remuneration = () => {
   };
 
   const handleSave = async () => {
-    if (!isFacultyInCharge) return;
+    if (!canEditRemuneration) return;
     setSaving(true);
     try {
       // Placeholder - backend to be implemented later
@@ -494,7 +496,7 @@ const Remuneration = () => {
   return (
     <div className="remuneration-page-container">
       <div className="remuneration-actions">
-        {isFacultyInCharge && (
+        {canEditRemuneration && (
           <button
             className="action-btn save-btn"
             onClick={handleSave}
@@ -627,7 +629,7 @@ const Remuneration = () => {
                           e.target.value
                         )
                       }
-                      disabled={!isFacultyInCharge}
+                      disabled={!canEditRemuneration}
                     />
                   </td>
                   <td>
@@ -642,7 +644,7 @@ const Remuneration = () => {
                           e.target.value
                         )
                       }
-                      disabled={!isFacultyInCharge}
+                      disabled={!canEditRemuneration}
                     />
                   </td>
                   <td>
@@ -657,7 +659,7 @@ const Remuneration = () => {
                           e.target.value
                         )
                       }
-                      disabled={!isFacultyInCharge}
+                      disabled={!canEditRemuneration}
                     />
                   </td>
                   <td>
@@ -668,7 +670,7 @@ const Remuneration = () => {
                       onChange={(e) =>
                         handleChange(emp.id, "tds", e.target.value)
                       }
-                      disabled={!isFacultyInCharge}
+                      disabled={!canEditRemuneration}
                     />
                   </td>
                   <td>
@@ -679,7 +681,7 @@ const Remuneration = () => {
                       onChange={(e) =>
                         handleChange(emp.id, "otherDeduction", e.target.value)
                       }
-                      disabled={!isFacultyInCharge}
+                      disabled={!canEditRemuneration}
                     />
                   </td>
                   <td>

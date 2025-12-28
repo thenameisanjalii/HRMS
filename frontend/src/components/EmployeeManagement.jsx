@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import './EmployeeManagement.css';
 
 const EmployeeManagement = () => {
-    const { user } = useAuth();
+    const { user, canAccessFeature } = useAuth();
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('All');
     const [employees, setEmployees] = useState([]);
@@ -126,10 +126,11 @@ const EmployeeManagement = () => {
         return <div className="employee-container"><p>Loading employees...</p></div>;
     }
 
-    const isAccountant = user?.role === 'ACCOUNTANT';
-    const isAdminOrCEO = user?.role === 'ADMIN' || user?.role === 'CEO';
-    const canAddEmployee = isAdminOrCEO;
-    const canDeleteEmployee = isAdminOrCEO;
+    // Use database permissions for feature access
+    const canAddEmployee = canAccessFeature('employee.create');
+    const canDeleteEmployee = canAccessFeature('employee.delete');
+    const canEditEmployee = canAccessFeature('employee.edit');
+    const canViewAll = canAccessFeature('employee.viewAll');
 
     return (
         <div className="employee-container">
