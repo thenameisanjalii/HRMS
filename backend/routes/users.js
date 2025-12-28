@@ -68,6 +68,95 @@ router.get('/', protect, async (req, res) => {
     }
 });
 
+// Change password (accessible by any authenticated user)
+router.put('/change-password', protect, async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ success: false, message: 'Please provide current and new password' });
+        }
+        
+        const user = await User.findById(req.user.id);
+        
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+        
+        // Check if current password is correct
+        const isMatch = await user.matchPassword(currentPassword);
+        if (!isMatch) {
+            return res.status(400).json({ success: false, message: 'Current password is incorrect' });
+        }
+        
+        // Update password
+        user.password = newPassword;
+        await user.save();
+        
+        res.json({ 
+            success: true, 
+            message: 'Password changed successfully'
+        });
+    } catch (error) {
+        console.error('Password change error:', error);
+        res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    }
+});
+
+// Update own profile (accessible by any authenticated user)
+// IMPORTANT: This route must come BEFORE /:id to avoid route conflicts
+router.put('/profile/me', protect, async (req, res) => {
+    try {
+        const { profile } = req.body;
+        
+        const user = await User.findById(req.user.id);
+        
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+        
+        // Users can only update their own profile information, not role or employment
+        if (profile) {
+            // Filter out undefined values to avoid Mongoose validation errors
+            const cleanProfile = {};
+            
+            Object.keys(profile).forEach(key => {
+                if (profile[key] !== undefined && profile[key] !== null) {
+                    cleanProfile[key] = profile[key];
+                }
+            });
+            
+            // Handle nested address object separately
+            if (profile.address) {
+                cleanProfile.address = {
+                    ...user.profile?.address,
+                    ...profile.address
+                };
+            }
+            
+            // Preserve existing nested objects that weren't updated
+            user.profile = { 
+                ...user.profile.toObject(),
+                ...cleanProfile
+            };
+        }
+        
+        await user.save();
+        
+        // Return user without password
+        const updatedUser = await User.findById(user._id).select('-password');
+        
+        res.json({ 
+            success: true, 
+            message: 'Profile updated successfully',
+            user: updatedUser 
+        });
+    } catch (error) {
+        console.error('Profile update error:', error);
+        res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    }
+});
+
 router.get('/:id', protect, async (req, res) => {
     try {
         const user = await User.findById(req.params.id)
@@ -132,7 +221,29 @@ router.put('/:id', protect, isAdminOrCEO, async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
         
-        if (profile) user.profile = { ...user.profile, ...profile };
+        if (profile) {
+            // Filter out undefined values to avoid Mongoose validation errors
+            const cleanProfile = {};
+            
+            Object.keys(profile).forEach(key => {
+                if (profile[key] !== undefined && profile[key] !== null) {
+                    cleanProfile[key] = profile[key];
+                }
+            });
+            
+            // Handle nested address object separately
+            if (profile.address) {
+                cleanProfile.address = {
+                    ...user.profile?.address,
+                    ...profile.address
+                };
+            }
+            
+            user.profile = { 
+                ...user.profile.toObject(),
+                ...cleanProfile
+            };
+        }
         if (employment) user.employment = { ...user.employment, ...employment };
         if (role) user.role = role;
         if (isActive !== undefined) user.isActive = isActive;

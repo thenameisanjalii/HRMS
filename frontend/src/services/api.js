@@ -64,6 +64,30 @@ export const usersAPI = {
         return response.json();
     },
 
+    updateMyProfile: async (profileData) => {
+        const response = await fetch(`${API_URL}/users/profile/me`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeader()
+            },
+            body: JSON.stringify({ profile: profileData })
+        });
+        return response.json();
+    },
+
+    changePassword: async (passwordData) => {
+        const response = await fetch(`${API_URL}/users/change-password`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeader()
+            },
+            body: JSON.stringify(passwordData)
+        });
+        return response.json();
+    },
+
     update: async (id, userData) => {
         const response = await fetch(`${API_URL}/users/${id}`, {
             method: 'PUT',
