@@ -65,15 +65,29 @@ export const usersAPI = {
     },
 
     updateMyProfile: async (profileData) => {
-        const response = await fetch(`${API_URL}/users/profile/me`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                ...getAuthHeader()
-            },
-            body: JSON.stringify({ profile: profileData })
-        });
-        return response.json();
+        try {
+            const response = await fetch(`${API_URL}/users/profile/me`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeader()
+                },
+                body: JSON.stringify({ profile: profileData })
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                return { 
+                    success: false, 
+                    message: errorData.message || `Server error: ${response.status}` 
+                };
+            }
+            
+            return response.json();
+        } catch (error) {
+            console.error('updateMyProfile error:', error);
+            return { success: false, message: error.message };
+        }
     },
 
     changePassword: async (passwordData) => {

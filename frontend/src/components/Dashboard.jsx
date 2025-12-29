@@ -15,6 +15,7 @@ import {
   Shield,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import nitrrfieLogo from "../assets/logo.png";
 
 import { getAccessibleNavItems } from "../constants/permissions";
 import { dashboardAPI, getPhotoUrl } from "../services/api";
@@ -264,7 +265,7 @@ const Dashboard = ({ onLogout }) => {
         {/* Sidebar */}
         <aside className={`sidebar ${isSidebarOpen ? "open" : "closed"}`}>
           <div className="sidebar-header">
-            <div className="logo-icon">HR</div>
+            <img src={nitrrfieLogo} alt="NITRRFIE" className="logo-icon" />
             {isSidebarOpen && <span className="logo-text">NITRRFIE</span>}
           </div>
 
@@ -317,10 +318,10 @@ const Dashboard = ({ onLogout }) => {
                       }} 
                     />
                   ) : (
-                    user?.username?.[0]?.toUpperCase() || "U"
+                    user?.profile?.firstName?.[0]?.toUpperCase() || user?.username?.[0]?.toUpperCase() || "U"
                   )}
                 </div>
-                <span className="user-name">{user?.username || "User"}</span>
+                <span className="user-name">{user?.profile?.firstName || user?.username || "User"}</span>
                 {showProfileMenu && (
                   <div className="profile-dropdown-menu">
                     <button 

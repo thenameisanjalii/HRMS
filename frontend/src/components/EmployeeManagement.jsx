@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Plus, Filter, MoreVertical, Mail, Phone, MapPin, Briefcase, X, Save } from 'lucide-react';
+import { Search, Plus, Filter, Mail, Phone, MapPin, Briefcase, X, Save, User, Calendar, Building, Badge } from 'lucide-react';
 import { usersAPI, authAPI, getPhotoUrl } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import './EmployeeManagement.css';
@@ -11,6 +11,8 @@ const EmployeeManagement = () => {
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
+    const [showProfileModal, setShowProfileModal] = useState(false);
+    const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [newEmployee, setNewEmployee] = useState({
         employeeId: '',
         username: '',
@@ -85,6 +87,11 @@ const EmployeeManagement = () => {
         } catch (error) {
             alert('Failed to delete employee');
         }
+    };
+
+    const handleViewProfile = (emp) => {
+        setSelectedEmployee(emp);
+        setShowProfileModal(true);
     };
 
     const getEmployeeName = (emp) => {
@@ -220,9 +227,6 @@ const EmployeeManagement = () => {
                     <div key={emp._id} className="emp-card glass-panel">
                         <div className="card-top">
                             <div className={`status-dot ${getStatusColor(emp.status || 'Active')}`} title={emp.status || 'Active'}></div>
-                            {canDeleteEmployee && (
-                                <button className="more-btn" onClick={() => handleDeleteEmployee(emp._id)}><MoreVertical size={18} /></button>
-                            )}
                         </div>
 
                         <div className="emp-profile">
@@ -266,11 +270,123 @@ const EmployeeManagement = () => {
                         </div>
 
                         <div className="card-actions">
-                            <button className="view-btn">View Profile</button>
+                            <button className="view-btn" onClick={() => handleViewProfile(emp)}>View Profile</button>
                         </div>
                     </div>
                 ))}
             </div>
+
+            {/* Employee Profile Modal */}
+            {showProfileModal && selectedEmployee && (
+                <div className="modal-overlay">
+                    <div className="modal-content profile-modal">
+                        <div className="modal-header">
+                            <h3>Employee Profile</h3>
+                            <button className="close-btn" onClick={() => setShowProfileModal(false)}><X size={20} /></button>
+                        </div>
+                        <div className="modal-body profile-view">
+                            <div className="profile-header">
+                                <div className="profile-avatar-large">
+                                    {selectedEmployee.profile?.photo ? (
+                                        <img 
+                                            src={getPhotoUrl(selectedEmployee.profile.photo)} 
+                                            alt={getEmployeeName(selectedEmployee)} 
+                                        />
+                                    ) : (
+                                        <span>{getAvatar(selectedEmployee)}</span>
+                                    )}
+                                </div>
+                                <div className="profile-name-section">
+                                    <h2>{getEmployeeName(selectedEmployee)}</h2>
+                                    <span className="profile-role">{selectedEmployee.employment?.designation || selectedEmployee.role}</span>
+                                    <span className={`status-badge ${getStatusColor(selectedEmployee.status || 'Active')}`}>
+                                        {selectedEmployee.status || 'Active'}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div className="profile-details-grid">
+                                <div className="profile-section">
+                                    <h4><User size={18} /> Personal Information</h4>
+                                    <div className="info-row">
+                                        <span className="info-label">Employee ID</span>
+                                        <span className="info-value">{selectedEmployee.employeeId || 'N/A'}</span>
+                                    </div>
+                                    <div className="info-row">
+                                        <span className="info-label">Email</span>
+                                        <span className="info-value">{selectedEmployee.email}</span>
+                                    </div>
+                                    <div className="info-row">
+                                        <span className="info-label">Phone</span>
+                                        <span className="info-value">{selectedEmployee.profile?.phone || 'N/A'}</span>
+                                    </div>
+                                    <div className="info-row">
+                                        <span className="info-label">Gender</span>
+                                        <span className="info-value">{selectedEmployee.profile?.gender || 'N/A'}</span>
+                                    </div>
+                                    <div className="info-row">
+                                        <span className="info-label">Date of Birth</span>
+                                        <span className="info-value">
+                                            {selectedEmployee.profile?.dateOfBirth 
+                                                ? new Date(selectedEmployee.profile.dateOfBirth).toLocaleDateString('en-IN') 
+                                                : 'N/A'}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div className="profile-section">
+                                    <h4><Building size={18} /> Employment Details</h4>
+                                    <div className="info-row">
+                                        <span className="info-label">Department</span>
+                                        <span className="info-value">{selectedEmployee.employment?.department || 'N/A'}</span>
+                                    </div>
+                                    <div className="info-row">
+                                        <span className="info-label">Designation</span>
+                                        <span className="info-value">{selectedEmployee.employment?.designation || 'N/A'}</span>
+                                    </div>
+                                    <div className="info-row">
+                                        <span className="info-label">Joining Date</span>
+                                        <span className="info-value">
+                                            {selectedEmployee.employment?.joiningDate 
+                                                ? new Date(selectedEmployee.employment.joiningDate).toLocaleDateString('en-IN') 
+                                                : 'N/A'}
+                                        </span>
+                                    </div>
+                                    <div className="info-row">
+                                        <span className="info-label">Role</span>
+                                        <span className="info-value">{selectedEmployee.role}</span>
+                                    </div>
+                                </div>
+                                
+                                <div className="profile-section full-width">
+                                    <h4><MapPin size={18} /> Address</h4>
+                                    <div className="info-row">
+                                        <span className="info-value">
+                                            {selectedEmployee.profile?.address ? 
+                                                [
+                                                    selectedEmployee.profile.address.street,
+                                                    selectedEmployee.profile.address.city,
+                                                    selectedEmployee.profile.address.state,
+                                                    selectedEmployee.profile.address.pincode
+                                                ].filter(Boolean).join(', ') || 'N/A'
+                                                : 'N/A'
+                                            }
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            {canDeleteEmployee && (
+                                <button className="delete-btn" onClick={() => { handleDeleteEmployee(selectedEmployee._id); setShowProfileModal(false); }}>
+                                    Delete Employee
+                                </button>
+                            )}
+                            <button className="cancel-btn" onClick={() => setShowProfileModal(false)}>Close</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

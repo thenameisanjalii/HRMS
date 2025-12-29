@@ -136,8 +136,13 @@ router.put('/profile/me', protect, async (req, res) => {
             }
             
             // Preserve existing nested objects that weren't updated
+            // Handle case where user.profile might be undefined
+            const existingProfile = user.profile ? 
+                (typeof user.profile.toObject === 'function' ? user.profile.toObject() : user.profile) 
+                : {};
+            
             user.profile = { 
-                ...user.profile.toObject(),
+                ...existingProfile,
                 ...cleanProfile
             };
         }
