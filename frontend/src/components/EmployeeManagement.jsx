@@ -206,18 +206,6 @@ const EmployeeManagement = () => {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <div className="filter-dropdown">
-                    <Filter size={20} className="filter-icon" />
-                    <select
-                        value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value)}
-                    >
-                        <option value="All">All Status</option>
-                        <option value="Active">Active</option>
-                        <option value="On Leave">On Leave</option>
-                        <option value="Remote">Remote</option>
-                    </select>
-                </div>
             </div>
 
             <div className="emp-grid">
@@ -225,9 +213,6 @@ const EmployeeManagement = () => {
                     <p className="no-employees">No employees found</p>
                 ) : filteredEmployees.map(emp => (
                     <div key={emp._id} className="emp-card glass-panel">
-                        <div className="card-top">
-                            <div className={`status-dot ${getStatusColor(emp.status || 'Active')}`} title={emp.status || 'Active'}></div>
-                        </div>
 
                         <div className="emp-profile">
                             <div className="emp-avatar">
