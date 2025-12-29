@@ -17,7 +17,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 
 import { getAccessibleNavItems } from "../constants/permissions";
-import { dashboardAPI, getPhotoUrl } from "../services/api";
+import { dashboardAPI, getPhotoUrl, leaveAPI } from "../services/api";
 import VariableRemuneration from "./VariableRemuneration";
 import Remuneration from "./Remuneration";
 import PeerRating from "./PeerRating";
@@ -33,7 +33,8 @@ import "./Dashboard.css";
 import Calendar from "./calendar";
 
 const Dashboard = ({ onLogout }) => {
-  const { user, isAdmin, getRoleHierarchyLevel, canAccessComponent } = useAuth();
+  const { user, isAdmin, getRoleHierarchyLevel, canAccessComponent } =
+    useAuth();
   const [activeView, setActiveView] = useState("dashboard");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
@@ -52,12 +53,12 @@ const Dashboard = ({ onLogout }) => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!event.target.closest('.user-profile-preview')) {
+      if (!event.target.closest(".user-profile-preview")) {
         setShowProfileMenu(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -80,6 +81,25 @@ const Dashboard = ({ onLogout }) => {
     fetchDashboardData();
   }, []);
 
+  const [pendingRequests, setPendingRequests] = useState([]);
+  const [activeTab, setActiveTab] = useState("apply");
+
+  useEffect(() => {
+    fetchPendingRequests();
+  }, [activeTab]);
+
+  const fetchPendingRequests = async () => {
+    try {
+      const data = await leaveAPI.getPending();
+      console.log(data);
+      if (data.success) {
+        setPendingRequests(data.leaves || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch pending leaves:", error);
+    }
+  };
+
   const formatDateTime = () => {
     return (
       currentDateTime.toLocaleDateString("en-IN", {
@@ -98,10 +118,10 @@ const Dashboard = ({ onLogout }) => {
   };
 
   const userLevel = getRoleHierarchyLevel(user?.role);
-  
+
   // Get navigation items accessible to current user (using database permissions)
   const accessibleNavItems = getAccessibleNavItems(user, canAccessComponent);
-  
+
   // Icon mapping for navigation items
   const iconMap = {
     LayoutDashboard,
@@ -113,7 +133,7 @@ const Dashboard = ({ onLogout }) => {
     FileText,
     FolderOpen,
     SettingsIcon,
-    Shield
+    Shield,
   };
 
   const stats = [
@@ -147,13 +167,13 @@ const Dashboard = ({ onLogout }) => {
     dashboardData.employeeAttendance.length > 0
       ? dashboardData.employeeAttendance
       : [
-        {
-          name: "No attendance records",
-          role: "",
-          status: "present",
-          checkIn: "-",
-        },
-      ];
+          {
+            name: "No attendance records",
+            role: "",
+            status: "present",
+            checkIn: "-",
+          },
+        ];
 
   const activities =
     dashboardData.activities.length > 0
@@ -248,7 +268,7 @@ const Dashboard = ({ onLogout }) => {
       case "settings":
         return <Settings />;
       case "calendar":
-        return <Calendar/>
+        return <Calendar />;
       case "admin":
         return <AdminPanel />;
       case "profile":
@@ -274,11 +294,20 @@ const Dashboard = ({ onLogout }) => {
               return (
                 <button
                   key={item.id}
-                  className={`nav-item ${activeView === item.view ? "active" : ""}`}
+                  className={`nav-item ${
+                    activeView === item.view ? "active" : ""
+                  }`}
                   onClick={() => setActiveView(item.view)}
                 >
                   {IconComponent && <IconComponent size={20} />}
-                  {isSidebarOpen && <span>{item.label}</span>}
+                  {isSidebarOpen && (
+                    <>
+                      <span>{item.label}</span>
+                      {item.view === 'leave' && pendingRequests.length >= 1 && (
+                        <span className="badge">{pendingRequests.length}</span>
+                      )}
+                    </>
+                  )}
                 </button>
               );
             })}
@@ -303,18 +332,21 @@ const Dashboard = ({ onLogout }) => {
             </button>
             <div className="top-bar-right">
               <span className="current-date">{formatDateTime()}</span>
-              <div className="user-profile-preview" onClick={() => setShowProfileMenu(!showProfileMenu)}>
+              <div
+                className="user-profile-preview"
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+              >
                 <div className="user-avatar">
                   {user?.profile?.photo ? (
-                    <img 
-                      src={getPhotoUrl(user.profile.photo)} 
-                      alt="Profile" 
-                      style={{ 
-                        width: '100%', 
-                        height: '100%', 
-                        objectFit: 'cover',
-                        borderRadius: '50%'
-                      }} 
+                    <img
+                      src={getPhotoUrl(user.profile.photo)}
+                      alt="Profile"
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        borderRadius: "50%",
+                      }}
                     />
                   ) : (
                     user?.username?.[0]?.toUpperCase() || "U"
@@ -323,7 +355,7 @@ const Dashboard = ({ onLogout }) => {
                 <span className="user-name">{user?.username || "User"}</span>
                 {showProfileMenu && (
                   <div className="profile-dropdown-menu">
-                    <button 
+                    <button
                       className="profile-menu-item"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -334,7 +366,7 @@ const Dashboard = ({ onLogout }) => {
                       <UserCircle size={18} />
                       <span>Edit Profile</span>
                     </button>
-                    <button 
+                    <button
                       className="profile-menu-item logout"
                       onClick={(e) => {
                         e.stopPropagation();
