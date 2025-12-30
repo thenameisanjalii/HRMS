@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Save, Download } from "lucide-react";
-import { usersAPI, authAPI } from "../services/api";
+import { usersAPI, authAPI, attendanceAPI, leaveAPI } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -39,6 +39,64 @@ const Salary = () => {
   ];
   const currentMonth = monthNames[currentDate.getMonth()];
   const currentYear = currentDate.getFullYear();
+
+  const [attendanceData, setAttendanceData] = useState({});
+  const [casualLeaveData, setCasualLeaveData] = useState({});
+  const [attendanceHalfDays, setAttendanceHalfDays] = useState({});
+  const [totalWeekendDays, setTotalWeekendDays] = useState(0);
+  const [currentMonthHolidays, setCurrentMonthHolidays] = useState(0);
+  const [totalDaysInMonth, setTotalDaysInMonth] = useState(0);
+
+  // Calculate month data
+  useEffect(() => {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth();
+
+    // Calculate total days in month
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    setTotalDaysInMonth(daysInMonth);
+
+    // Calculate weekend days
+    let weekendCount = 0;
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dayOfWeek = new Date(currentYear, currentMonth, day).getDay();
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        weekendCount++;
+      }
+    }
+    setTotalWeekendDays(weekendCount);
+
+    // Set holidays (same logic as Remuneration.jsx)
+    const month_per_holiday = {
+      Jan: 1,
+      Mar: 3,
+      Apr: 1,
+      May: 2,
+      Jun: 1,
+      Aug: 2,
+      Sept: 2,
+      Oct: 2,
+      Nov: 2,
+      Dec: 1,
+    };
+    const monthAbbreviations = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sept",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const currentMonthAbbr = monthAbbreviations[currentMonth];
+    setCurrentMonthHolidays(month_per_holiday[currentMonthAbbr] || 0);
+  }, []);
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -199,8 +257,36 @@ const Salary = () => {
     );
   };
 
+  // Add the calculateNetPayable function
+  const calculateNetPayable = () => {
+    if (!selectedEmployee) return 0;
+
+    const daysWorked = attendanceData[selectedEmployee.employeeId] || 0;
+    const approvedLeaves = casualLeaveData[selectedEmployee.employeeId] || 0;
+    const halfDays = attendanceHalfDays[selectedEmployee.employeeId] || 0;
+    const casualLeave = approvedLeaves + halfDays * 0.5;
+
+    const netPayableDays =
+      daysWorked + casualLeave + totalWeekendDays + currentMonthHolidays;
+
+    const employeeId = selectedEmployee.employeeId;
+    const remunerationData = employeeRemunerationData[employeeId];
+    const grossRemuneration =
+      remunerationData?.grossRemuneration ||
+      selectedEmployee.fixedPay + selectedEmployee.variablePay;
+
+    if (totalDaysInMonth === 0) return 0;
+    const netPayable = (grossRemuneration / totalDaysInMonth) * netPayableDays;
+
+    return netPayable.toFixed(2);
+  };
+
+  // Update the calculateNetSalary function to use calculateNetPayable
   const calculateNetSalary = () => {
-    return calculateGrossSalary() - calculateTotalDeductions();
+    // Use the calculated net payable from remuneration logic
+    const netPayable = parseFloat(calculateNetPayable());
+    const deductions = calculateTotalDeductions();
+    return (netPayable - deductions).toFixed(2);
   };
 
   const handleSave = async () => {
@@ -278,6 +364,89 @@ const Salary = () => {
         });
     }, 100);
   };
+
+  useEffect(() => {
+    const fetchAttendanceAndLeaves = async () => {
+      if (!selectedEmployee) return;
+
+      try {
+        const currentDate = new Date();
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth();
+
+        // Fetch attendance
+        const attendanceResponse = await fetch(
+          `http://localhost:5000/api/attendance/user/${
+            selectedEmployee.id
+          }?month=${currentMonth + 1}&year=${currentYear}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        const attendanceData = await attendanceResponse.json();
+
+        if (attendanceData.success) {
+          const presentCount = attendanceData.attendance.filter(
+            (a) => a.status === "present" || a.status === "late"
+          ).length;
+          const halfCount = attendanceData.attendance.filter(
+            (a) => a.status === "half-day"
+          ).length;
+
+          setAttendanceData({
+            [selectedEmployee.employeeId]: presentCount + halfCount * 0.5,
+          });
+          setAttendanceHalfDays({
+            [selectedEmployee.employeeId]: halfCount,
+          });
+        }
+
+        // Fetch leaves
+        const startOfMonth = new Date(currentYear, currentMonth, 1);
+        const endOfMonth = new Date(currentYear, currentMonth + 1, 0);
+        const leavesResponse = await leaveAPI.getAll("approved");
+
+        if (leavesResponse.success && leavesResponse.leaves) {
+          let casualLeave = 0;
+
+          leavesResponse.leaves.forEach((leave) => {
+            if (
+              leave.user?._id === selectedEmployee.id ||
+              leave.user === selectedEmployee.id
+            ) {
+              const leaveStart = new Date(leave.startDate);
+              const leaveEnd = new Date(leave.endDate);
+
+              if (leaveStart <= endOfMonth && leaveEnd >= startOfMonth) {
+                const overlapStart =
+                  leaveStart > startOfMonth ? leaveStart : startOfMonth;
+                const overlapEnd =
+                  leaveEnd < endOfMonth ? leaveEnd : endOfMonth;
+                const daysDiff =
+                  Math.ceil(
+                    (overlapEnd - overlapStart) / (1000 * 60 * 60 * 24)
+                  ) + 1;
+
+                if (leave.leaveType === "Casual Leave") {
+                  casualLeave += daysDiff;
+                }
+              }
+            }
+          });
+
+          setCasualLeaveData({
+            [selectedEmployee.employeeId]: casualLeave,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch attendance/leave data:", error);
+      }
+    };
+
+    fetchAttendanceAndLeaves();
+  }, [selectedEmployee]);
 
   if (loading) {
     return (
@@ -590,7 +759,7 @@ const Salary = () => {
                   <strong>Net Salary (In Rs.)</strong>
                 </td>
                 <td colSpan="3">
-                  <strong>{calculateNetSalary().toFixed(2)}</strong>
+                  <strong>{calculateNetSalary()}</strong>
                 </td>
               </tr>
             </tbody>
