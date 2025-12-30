@@ -64,6 +64,7 @@ const Dashboard = ({ onLogout }) => {
     const fetchDashboardData = async () => {
       try {
         const data = await dashboardAPI.getStats();
+        console.log(`Dashboard data: ${data.stats.totalEmployees}`);
         if (data.success) {
           setDashboardData({
             stats: data.stats,
