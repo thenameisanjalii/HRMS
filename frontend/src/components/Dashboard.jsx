@@ -350,17 +350,19 @@ const Dashboard = ({ onLogout }) => {
                 <span className="user-name">{user?.profile?.firstName || user?.username || "User"}</span>
                 {showProfileMenu && (
                   <div className="profile-dropdown-menu">
-                    <button
-                      className="profile-menu-item"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setActiveView("profile");
-                        setShowProfileMenu(false);
-                      }}
-                    >
-                      <UserCircle size={18} />
-                      <span>Edit Profile</span>
-                    </button>
+                    {canAccessComponent('profile') && (
+                      <button
+                        className="profile-menu-item"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveView("profile");
+                          setShowProfileMenu(false);
+                        }}
+                      >
+                        <UserCircle size={18} />
+                        <span>Edit Profile</span>
+                      </button>
+                    )}
                     <button
                       className="profile-menu-item logout"
                       onClick={(e) => {
