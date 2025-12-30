@@ -103,6 +103,8 @@ const Remuneration = () => {
     fetchAllEmployeesLeaves();
   }, [currentMonth, currentYear]);
 
+  const [attendanceHalfDays, setAttendanceHalfDays] = useState({});
+
   const fetchAllEmployeesAttendance = async () => {
     setLoadingAttendance(true);
     try {
@@ -114,8 +116,7 @@ const Remuneration = () => {
         const attendancePromises = usersResponse.users.map(async (userData) => {
           try {
             const response = await fetch(
-              `http://localhost:5000/api/attendance/user/${
-                userData._id
+              `http://localhost:5000/api/attendance/user/${userData._id
               }?month=${currentDate.getMonth() + 1}&year=${currentYear}`,
               {
                 headers: {
@@ -127,20 +128,26 @@ const Remuneration = () => {
 
             if (data.success) {
               // Count present and late days
-              const presentDays = data.attendance.filter(
+              const presentCount = data.attendance.filter(
                 (a) => a.status === "present" || a.status === "late"
+              ).length;
+
+              const halfCount = data.attendance.filter(
+                (a) => a.status === "half-day"
               ).length;
 
               return {
                 userId: userData._id,
                 employeeId: userData.employeeId,
-                presentDays,
+                presentDays: presentCount + (halfCount * 0.5),
+                halfDays: halfCount
               };
             }
             return {
               userId: userData._id,
               employeeId: userData.employeeId,
               presentDays: 0,
+              halfDays: 0
             };
           } catch (error) {
             console.error(
@@ -151,19 +158,24 @@ const Remuneration = () => {
               userId: userData._id,
               employeeId: userData.employeeId,
               presentDays: 0,
+              halfDays: 0
             };
           }
         });
 
         const attendanceResults = await Promise.all(attendancePromises);
 
-        // Create a map of employeeId to presentDays
+        // Create a map of employeeId to presentDays and halfDays
         const attendanceMap = {};
+        const halfDayMap = {};
+
         attendanceResults.forEach((result) => {
           attendanceMap[result.employeeId] = result.presentDays;
+          halfDayMap[result.employeeId] = result.halfDays;
         });
 
         setAttendanceData(attendanceMap);
+        setAttendanceHalfDays(halfDayMap);
       }
     } catch (error) {
       console.error("Failed to fetch attendance data:", error);
@@ -401,7 +413,11 @@ const Remuneration = () => {
 
   const calculatePayableDays = (emp) => {
     const daysWorked = attendanceData[emp.employeeId] || 0;
-    const casualLeave = casualLeaveData[emp.employeeId] || 0;
+    // Casual Leave = Approved Leaves + 0.5 * Half Days attended
+    const approvedLeaves = casualLeaveData[emp.employeeId] || 0;
+    const halfDays = attendanceHalfDays[emp.employeeId] || 0;
+    const casualLeave = approvedLeaves + (halfDays * 0.5);
+
     const holidays = currentMonthHolidays || 0;
     netPayableDays = daysWorked + casualLeave + totalWeekendDays + holidays;
 
@@ -596,12 +612,11 @@ const Remuneration = () => {
                     )}
                   </td>
                   <td>
-                    {loadingLeaves ? (
+                    {loadingLeaves || loadingAttendance ? (
                       <span className="loading-text">Loading...</span>
-                    ) : casualLeaveData[emp.employeeId] !== undefined ? (
-                      casualLeaveData[emp.employeeId]
                     ) : (
-                      0
+                      (casualLeaveData[emp.employeeId] || 0) +
+                      ((attendanceHalfDays[emp.employeeId] || 0) * 0.5)
                     )}
                   </td>
                   <td>{totalWeekendDays}</td>

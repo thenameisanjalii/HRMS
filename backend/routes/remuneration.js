@@ -141,10 +141,16 @@ router.get('/attendance-summary', protect, isManagement, async (req, res) => {
                 a => a.status === 'present' || a.status === 'late'
             ).length;
 
-            // Count days on leave
-            const casualLeave = userAttendance.filter(
+            // Count days on leave (full leave + 0.5 for half day)
+            const fullLeaveCount = userAttendance.filter(
                 a => a.status === 'on-leave'
             ).length;
+
+            const halfDayCount = userAttendance.filter(
+                a => a.status === 'half-day'
+            ).length;
+
+            const casualLeave = fullLeaveCount + (halfDayCount * 0.5);
 
             // Count days absent
             const daysAbsent = userAttendance.filter(

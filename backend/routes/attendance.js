@@ -454,23 +454,68 @@ router.post('/mark-status', protect, async (req, res) => {
             });
         }
 
-        // Create or Update Attendance Record
         if (attendance) {
             attendance.status = status;
 
-            if (status === 'absent') {
-                // Logic for absent? Maybe clear check-in times if we want to be strict,
-                // but typically we just mark the status.
-                // Requirements say: "mark him absent which will also reflect"
+            // Auto Check-in/out logic based on status
+            const now = new Date();
+
+            if (status === 'present') {
+                // If marking present and no check-in exists, create one
+                if (!attendance.checkIn || !attendance.checkIn.time) {
+                    attendance.checkIn = {
+                        time: now,
+                        ip: 'Manual (Admin)'
+                    };
+                    // Ensure isLate is false if manually marked present
+                    attendance.isLate = false;
+                }
+            } else if (status === 'half-day' || status === 'absent') {
+                // If marking absent/half-day and no check-out exists, create one to close the day
+                if (!attendance.checkOut || !attendance.checkOut.time) {
+                    attendance.checkOut = {
+                        time: now,
+                        ip: 'Manual (Admin)'
+                    };
+
+                    // Calculate working hours if check-in exists
+                    if (attendance.checkIn && attendance.checkIn.time) {
+                        const diffMs = now - new Date(attendance.checkIn.time);
+                        attendance.workingHours = Math.round((diffMs / (1000 * 60 * 60)) * 100) / 100;
+                    }
+                }
             }
+
             await attendance.save();
         } else {
-            attendance = await Attendance.create({
+            // New attendance record
+            const now = new Date();
+            const attendanceData = {
                 user: userId,
                 userName: `${targetUser.profile.firstName} ${targetUser.profile.lastName}`.trim(),
                 date: today,
                 status: status,
-            });
+            };
+
+            if (status === 'present') {
+                attendanceData.checkIn = {
+                    time: now,
+                    ip: 'Manual (Admin)'
+                };
+                attendanceData.isLate = false;
+            } else if (status === 'half-day' || status === 'absent') {
+                // If starting with absent/half-day, usually implies no work, but to "close" it we might set generic times?
+                // User requirement: "check out must be automatically done"
+                // If there is no check-in, just setting check-out might be weird but satisfies request.
+                // However, usually you need a check-in to have a check-out.
+                // Let's set checkOut.
+                attendanceData.checkOut = {
+                    time: now,
+                    ip: 'Manual (Admin)'
+                };
+            }
+
+            attendance = await Attendance.create(attendanceData);
         }
 
         res.json({ success: true, message: `Marked as ${status}`, attendance });
