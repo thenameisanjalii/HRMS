@@ -110,7 +110,7 @@ const EmployeeManagement = () => {
 
     const filteredEmployees = employees.filter(emp => {
         const excludedRoles = ['FACULTY_IN_CHARGE', 'OFFICER_IN_CHARGE', 'ADMIN'];
-        if(excludedRoles.includes(emp.role)) return false;
+        if (excludedRoles.includes(emp.role)) return false;
 
         const name = getEmployeeName(emp).toLowerCase();
         const role = (emp.employment?.designation || emp.role || '').toLowerCase();
@@ -157,41 +157,37 @@ const EmployeeManagement = () => {
             </div>
 
             {showAddModal && (
-                <div className="modal-overlay">
-                    <div className="modal-content">
-                        <div className="modal-header">
+                <div className="emp-modal-overlay">
+                    <div className="emp-modal-content">
+                        <div className="emp-modal-header">
                             <h3>Add New Employee</h3>
-                            <button className="close-btn" onClick={() => setShowAddModal(false)}><X size={20} /></button>
+                            <button className="emp-close-btn" onClick={() => setShowAddModal(false)}><X size={20} /></button>
                         </div>
-                        <div className="modal-body">
+                        <div className="emp-modal-body">
                             <div className="form-row">
-                                <input type="text" placeholder="Employee ID *" value={newEmployee.employeeId} onChange={(e) => setNewEmployee({...newEmployee, employeeId: e.target.value})} />
-                                <input type="text" placeholder="Username *" value={newEmployee.username} onChange={(e) => setNewEmployee({...newEmployee, username: e.target.value})} />
+                                <input type="text" placeholder="Employee ID *" value={newEmployee.employeeId} onChange={(e) => setNewEmployee({ ...newEmployee, employeeId: e.target.value })} />
+                                <input type="text" placeholder="Username *" value={newEmployee.username} onChange={(e) => setNewEmployee({ ...newEmployee, username: e.target.value })} />
                             </div>
                             <div className="form-row">
-                                <input type="email" placeholder="Email *" value={newEmployee.email} onChange={(e) => setNewEmployee({...newEmployee, email: e.target.value})} />
-                                <input type="password" placeholder="Password *" value={newEmployee.password} onChange={(e) => setNewEmployee({...newEmployee, password: e.target.value})} />
-                                <select value={newEmployee.role} onChange={(e) => setNewEmployee({...newEmployee, role: e.target.value})}>
+                                <input type="email" placeholder="Email *" value={newEmployee.email} onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })} />
+                                <input type="password" placeholder="Password *" value={newEmployee.password} onChange={(e) => setNewEmployee({ ...newEmployee, password: e.target.value })} />
+                                <select value={newEmployee.role} onChange={(e) => setNewEmployee({ ...newEmployee, role: e.target.value })}>
                                     <option value="EMPLOYEE">EMPLOYEE</option>
-                                    <option value="INCUBATION_MANAGER">INCUBATION MANAGER</option>
-                                    <option value="ACCOUNTANT">ACCOUNTANT</option>
-                                    <option value="OFFICER_IN_CHARGE">OFFICER IN CHARGE</option>
-                                    <option value="FACULTY_IN_CHARGE">FACULTY IN CHARGE</option>
                                 </select>
                             </div>
                             <div className="form-row">
-                                <input type="text" placeholder="First Name" value={newEmployee.profile.firstName} onChange={(e) => setNewEmployee({...newEmployee, profile: {...newEmployee.profile, firstName: e.target.value}})} />
-                                <input type="text" placeholder="Last Name" value={newEmployee.profile.lastName} onChange={(e) => setNewEmployee({...newEmployee, profile: {...newEmployee.profile, lastName: e.target.value}})} />
+                                <input type="text" placeholder="First Name" value={newEmployee.profile.firstName} onChange={(e) => setNewEmployee({ ...newEmployee, profile: { ...newEmployee.profile, firstName: e.target.value } })} />
+                                <input type="text" placeholder="Last Name" value={newEmployee.profile.lastName} onChange={(e) => setNewEmployee({ ...newEmployee, profile: { ...newEmployee.profile, lastName: e.target.value } })} />
                             </div>
                             <div className="form-row">
-                                <input type="text" placeholder="Phone" value={newEmployee.profile.phone} onChange={(e) => setNewEmployee({...newEmployee, profile: {...newEmployee.profile, phone: e.target.value}})} />
-                                <input type="text" placeholder="Designation" value={newEmployee.employment.designation} onChange={(e) => setNewEmployee({...newEmployee, employment: {...newEmployee.employment, designation: e.target.value}})} />
+                                <input type="text" placeholder="Phone" value={newEmployee.profile.phone} onChange={(e) => setNewEmployee({ ...newEmployee, profile: { ...newEmployee.profile, phone: e.target.value } })} />
+                                <input type="text" placeholder="Designation" value={newEmployee.employment.designation} onChange={(e) => setNewEmployee({ ...newEmployee, employment: { ...newEmployee.employment, designation: e.target.value } })} />
                             </div>
                             {/* <div className="form-row">
                                 <input type="text" placeholder="Department" value={newEmployee.employment.department} onChange={(e) => setNewEmployee({...newEmployee, employment: {...newEmployee.employment, department: e.target.value}})} />
                             </div> */}
                         </div>
-                        <div className="modal-footer">
+                        <div className="emp-modal-footer">
                             <button className="cancel-btn" onClick={() => setShowAddModal(false)}>Cancel</button>
                             <button className="save-btn" onClick={handleAddEmployee}><Save size={18} /> Save Employee</button>
                         </div>
@@ -220,15 +216,15 @@ const EmployeeManagement = () => {
                         <div className="emp-profile">
                             <div className="emp-avatar">
                                 {emp.profile?.photo ? (
-                                    <img 
-                                        src={getPhotoUrl(emp.profile.photo)} 
-                                        alt={getEmployeeName(emp)} 
-                                        style={{ 
-                                            width: '100%', 
-                                            height: '100%', 
+                                    <img
+                                        src={getPhotoUrl(emp.profile.photo)}
+                                        alt={getEmployeeName(emp)}
+                                        style={{
+                                            width: '100%',
+                                            height: '100%',
                                             objectFit: 'cover',
                                             borderRadius: '50%'
-                                        }} 
+                                        }}
                                     />
                                 ) : (
                                     <span>{getAvatar(emp)}</span>
@@ -276,9 +272,9 @@ const EmployeeManagement = () => {
                             <div className="profile-header">
                                 <div className="profile-avatar-large">
                                     {selectedEmployee.profile?.photo ? (
-                                        <img 
-                                            src={getPhotoUrl(selectedEmployee.profile.photo)} 
-                                            alt={getEmployeeName(selectedEmployee)} 
+                                        <img
+                                            src={getPhotoUrl(selectedEmployee.profile.photo)}
+                                            alt={getEmployeeName(selectedEmployee)}
                                         />
                                     ) : (
                                         <span>{getAvatar(selectedEmployee)}</span>
@@ -292,7 +288,7 @@ const EmployeeManagement = () => {
                                     </span>
                                 </div>
                             </div>
-                            
+
                             <div className="profile-details-grid">
                                 <div className="profile-section">
                                     <h4><User size={18} /> Personal Information</h4>
@@ -315,13 +311,13 @@ const EmployeeManagement = () => {
                                     <div className="info-row">
                                         <span className="info-label">Date of Birth</span>
                                         <span className="info-value">
-                                            {selectedEmployee.profile?.dateOfBirth 
-                                                ? new Date(selectedEmployee.profile.dateOfBirth).toLocaleDateString('en-IN') 
+                                            {selectedEmployee.profile?.dateOfBirth
+                                                ? new Date(selectedEmployee.profile.dateOfBirth).toLocaleDateString('en-IN')
                                                 : 'N/A'}
                                         </span>
                                     </div>
                                 </div>
-                                
+
                                 <div className="profile-section">
                                     <h4><Building size={18} /> Employment Details</h4>
                                     <div className="info-row">
@@ -331,8 +327,8 @@ const EmployeeManagement = () => {
                                     <div className="info-row">
                                         <span className="info-label">Joining Date</span>
                                         <span className="info-value">
-                                            {selectedEmployee.employment?.joiningDate 
-                                                ? new Date(selectedEmployee.employment.joiningDate).toLocaleDateString('en-IN') 
+                                            {selectedEmployee.employment?.joiningDate
+                                                ? new Date(selectedEmployee.employment.joiningDate).toLocaleDateString('en-IN')
                                                 : 'N/A'}
                                         </span>
                                     </div>
@@ -341,12 +337,12 @@ const EmployeeManagement = () => {
                                         <span className="info-value">{selectedEmployee.role}</span>
                                     </div>
                                 </div>
-                                
+
                                 <div className="profile-section full-width">
                                     <h4><MapPin size={18} /> Address</h4>
                                     <div className="info-row">
                                         <span className="info-value">
-                                            {selectedEmployee.profile?.address ? 
+                                            {selectedEmployee.profile?.address ?
                                                 [
                                                     selectedEmployee.profile.address.street,
                                                     selectedEmployee.profile.address.city,

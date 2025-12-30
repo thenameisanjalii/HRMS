@@ -106,7 +106,7 @@
 .filter-dropdown select {
     background: transparent;
     border: none;
-    color:black;
+    color: black;
     font-family: inherit;
     font-size: 0.95rem;
     cursor: pointer;
@@ -291,7 +291,7 @@
     padding: 3rem;
 }
 
-.modal-overlay {
+.emp-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -304,7 +304,7 @@
     z-index: 1000;
 }
 
-.modal-content {
+.emp-modal-content {
     background: #1e1e2d;
     border-radius: 16px;
     width: 90%;
@@ -314,7 +314,7 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.modal-header {
+.emp-modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -322,12 +322,12 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.modal-header h3 {
+.emp-modal-header h3 {
     margin: 0;
     color: #fff;
 }
 
-.close-btn {
+.emp-close-btn {
     background: none;
     border: none;
     color: rgba(255, 255, 255, 0.6);
@@ -335,11 +335,11 @@
     padding: 0.25rem;
 }
 
-.close-btn:hover {
+.emp-close-btn:hover {
     color: #fff;
 }
 
-.modal-body {
+.emp-modal-body {
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
@@ -380,7 +380,7 @@
     background: #1e1e2d;
 }
 
-.modal-footer {
+.emp-modal-footer {
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
@@ -595,12 +595,12 @@
     .profile-details-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .profile-header {
         flex-direction: column;
         text-align: center;
     }
-    
+
     .profile-name-section {
         align-items: center;
     }
