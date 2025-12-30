@@ -109,6 +109,9 @@ const EmployeeManagement = () => {
     };
 
     const filteredEmployees = employees.filter(emp => {
+        const excludedRoles = ['FACULTY_IN_CHARGE', 'OFFICER_IN_CHARGE', 'ADMIN'];
+        if(excludedRoles.includes(emp.role)) return false;
+
         const name = getEmployeeName(emp).toLowerCase();
         const role = (emp.employment?.designation || emp.role || '').toLowerCase();
         const department = (emp.employment?.department || '').toLowerCase();
