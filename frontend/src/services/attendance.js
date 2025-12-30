@@ -1,1 +1,1 @@
-export const hours_attendance = 11;
+export const hours_attendance = 10;
