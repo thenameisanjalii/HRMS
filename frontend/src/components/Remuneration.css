@@ -58,6 +58,7 @@
 .remuneration-actions {
     display: flex;
     justify-content: flex-end;
+    margin-right: 140px;
     gap: 1rem;
     margin-bottom: 1rem;
 }
