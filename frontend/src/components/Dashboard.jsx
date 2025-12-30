@@ -3,7 +3,6 @@ import {
   LayoutDashboard,
   FileText,
   Users,
-  Settings as SettingsIcon,
   LogOut,
   Menu,
   Star,
@@ -27,7 +26,6 @@ import LeaveManagement from "./LeaveManagement";
 import EmployeeManagement from "./EmployeeManagement";
 import Salary from "./Salary";
 import EFiling from "./EFiling";
-import Settings from "./Settings";
 import ProfileEdit from "./ProfileEdit";
 import AdminPanel from "./AdminPanel";
 import "./Dashboard.css";
@@ -133,7 +131,6 @@ const Dashboard = ({ onLogout }) => {
     Star,
     FileText,
     FolderOpen,
-    SettingsIcon,
     Shield,
   };
 
@@ -168,13 +165,13 @@ const Dashboard = ({ onLogout }) => {
     dashboardData.employeeAttendance.length > 0
       ? dashboardData.employeeAttendance
       : [
-          {
-            name: "No attendance records",
-            role: "",
-            status: "present",
-            checkIn: "-",
-          },
-        ];
+        {
+          name: "No attendance records",
+          role: "",
+          status: "present",
+          checkIn: "-",
+        },
+      ];
 
   const activities =
     dashboardData.activities.length > 0
@@ -266,8 +263,6 @@ const Dashboard = ({ onLogout }) => {
         return <Remuneration />;
       case "efiling":
         return <EFiling />;
-      case "settings":
-        return <Settings />;
       case "calendar":
         return <Calendar />;
       case "admin":
@@ -295,9 +290,8 @@ const Dashboard = ({ onLogout }) => {
               return (
                 <button
                   key={item.id}
-                  className={`nav-item ${
-                    activeView === item.view ? "active" : ""
-                  }`}
+                  className={`nav-item ${activeView === item.view ? "active" : ""
+                    }`}
                   onClick={() => setActiveView(item.view)}
                 >
                   {IconComponent && <IconComponent size={20} />}

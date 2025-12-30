@@ -135,13 +135,7 @@ export const NAVIGATION_ITEMS = [
         view: 'efiling',
         allowedRoles: ROLE_GROUPS_HELPER.MANAGERS
     },
-    {
-        id: 'settings',
-        label: 'Settings',
-        icon: 'SettingsIcon',
-        view: 'settings',
-        allowedRoles: ROLE_GROUPS_HELPER.MANAGERS
-    },
+
     {
         id: 'admin',
         label: 'Admin Panel',
@@ -176,7 +170,7 @@ export const canAccessFeature = (featureId, user) => {
  */
 export const getAccessibleNavItems = (user, canAccessComponentFn) => {
     if (!user || !user.role) return [];
-    
+
     // Filter based on database permissions - they take priority
     return NAVIGATION_ITEMS.filter(item => {
         // Use database permissions if available
@@ -184,7 +178,7 @@ export const getAccessibleNavItems = (user, canAccessComponentFn) => {
             const hasAccess = canAccessComponentFn(item.view);
             return hasAccess;
         }
-        
+
         // Only fallback to hardcoded allowedRoles if no permission function exists
         if (item.allowedRoles && item.allowedRoles.includes(user.role)) {
             // Check custom permission function if exists
@@ -193,7 +187,7 @@ export const getAccessibleNavItems = (user, canAccessComponentFn) => {
             }
             return true;
         }
-        
+
         return false;
     });
 };
