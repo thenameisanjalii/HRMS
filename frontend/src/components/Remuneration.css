@@ -134,14 +134,16 @@
 }
 
 .table-container {
-    overflow-x: auto;
+    overflow-x: visible;
     margin-bottom: 2rem;
+    width: 100%;
 }
 
 .remuneration-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.7rem;
+    font-size: 0.75rem;
+    table-layout: auto;
 }
 
 .remuneration-table th,
@@ -149,7 +151,7 @@
     padding: 0.4rem 0.2rem;
     border: 1px solid #000;
     text-align: center;
-    vertical-align: top;
+    vertical-align: center;
 }
 
 .remuneration-table th {
@@ -201,7 +203,9 @@
 .pan-cell {
     font-size: 0.55rem;
     text-align: left !important;
-    min-width: 130px;
+    min-width: 150px;
+    white-space: pre-wrap;
+    word-break: break-all;
 }
 
 .pan-cell pre {
@@ -216,30 +220,45 @@
     min-width: 70px;
     height: 28px;
     padding: 4px 8px;
-    background: #fff;
-    border: 1px solid #ccc;
-    border-radius: 3px;
+    background: transparent;
+    border: none;
     color: #000;
-    text-align: right;
+    text-align: center;
     font-family: inherit;
     font-size: 0.8rem;
     box-sizing: border-box;
-    overflow: visible;
 }
 
 .wide-input {
-    width: 90px;
-    min-width: 90px;
+    min-width: 70px;
 }
 
 .score-input:disabled {
-    background-color: #f5f5f5;
-    cursor: not-allowed;
+    background-color: transparent;
+    cursor: default;
+    color: #333;
 }
 
 .score-input:focus {
     outline: none;
-    border-color: #003366;
+    background-color: #f0f7ff;
+}
+
+.score-input::-webkit-outer-spin-button,
+.score-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox: Remove number input arrows */
+.score-input[type=number] {
+    -moz-appearance: textfield;
+}
+
+/* Adjust the table cell padding to allow input to fill it */
+.remuneration-table td:has(.score-input) {
+    padding: 0; 
+    vertical-align: middle;
 }
 
 .totals-row {
@@ -273,6 +292,26 @@
 
 .signature p {
     margin: 0.25rem 0;
+}
+
+/* PDF Print Mode Styles */
+.pdf-print-mode .score-input {
+    border: none !important;
+    background: transparent !important;
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+}
+
+.pdf-print-mode .score-input:focus {
+    outline: none !important;
+    background: transparent !important;
+}
+
+.pdf-value-display {
+    font-size: 0.7rem;
+    color: #000;
+    text-align: center;
+    display: inline-block;
 }
 
 @media print {

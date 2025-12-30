@@ -378,7 +378,7 @@
 .signature-section {
     display: flex;
     justify-content: space-between;
-    border: 2px solid #000;
+    /* border: 2px solid #000; */
     border-top: none;
     padding: 60px 40px 20px 40px;
     margin-top: 0;

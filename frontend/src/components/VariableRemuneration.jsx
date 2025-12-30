@@ -148,81 +148,198 @@ const VariableRemuneration = () => {
     const handleDownloadPDF = () => {
         if (!contentRef.current) return;
 
-
         const actionsDiv = document.querySelector('.remuneration-actions');
         if (actionsDiv) actionsDiv.style.display = 'none';
 
-
-        const originalStyle = {
-            width: contentRef.current.style.width,
-            maxWidth: contentRef.current.style.maxWidth,
-            overflow: contentRef.current.style.overflow
+        const container = contentRef.current;
+        const tableContainer = container.querySelector('.table-container');
+        
+        // Store original styles
+        const originalContainerStyle = {
+            width: container.style.width,
+            maxWidth: container.style.maxWidth,
+            overflow: container.style.overflow,
+            height: container.style.height,
+            minHeight: container.style.minHeight,
         };
 
-        const tableContainer = contentRef.current.querySelector('.table-container');
-        const originalTableStyle = {
+        const originalTableContainerStyle = {
             overflow: tableContainer ? tableContainer.style.overflow : '',
-            maxWidth: tableContainer ? tableContainer.style.maxWidth : ''
+            maxWidth: tableContainer ? tableContainer.style.maxWidth : '',
+            width: tableContainer ? tableContainer.style.width : '',
         };
 
-
-        contentRef.current.style.width = 'fit-content';
-        contentRef.current.style.maxWidth = 'none';
-        contentRef.current.style.overflow = 'visible';
+        // Apply styles to ensure full content is visible
+        container.style.width = 'fit-content';
+        container.style.maxWidth = 'none';
+        container.style.overflow = 'visible';
+        container.style.height = 'auto';
+        container.style.minHeight = 'auto';
+        container.classList.add('pdf-print-mode');
 
         if (tableContainer) {
             tableContainer.style.overflow = 'visible';
             tableContainer.style.maxWidth = 'none';
+            tableContainer.style.width = 'auto';
         }
 
+        // Force input values to be visible for PDF
+        const inputs = container.querySelectorAll('input[type="number"]');
+        const inputData = [];
+        inputs.forEach((input) => {
+            inputData.push({
+                element: input,
+                parent: input.parentElement,
+                value: input.value,
+                nextSibling: input.nextSibling
+            });
+            const span = document.createElement('span');
+            span.className = 'pdf-value-display';
+            span.textContent = input.value || '0';
+            span.style.cssText = 'font-size: 0.85rem; color: #000; display: inline-block;';
+            input.style.display = 'none';
+            input.parentElement.insertBefore(span, input.nextSibling);
+        });
+
+        // Force browser to recalculate layout
+        void container.offsetHeight;
 
         setTimeout(() => {
-            html2canvas(contentRef.current, {
-                scale: 2,
+            // Recursively calculate total height of all elements including nested ones
+            const calculateElementHeight = (element) => {
+                const styles = window.getComputedStyle(element);
+                const marginTop = parseFloat(styles.marginTop) || 0;
+                const marginBottom = parseFloat(styles.marginBottom) || 0;
+                const paddingTop = parseFloat(styles.paddingTop) || 0;
+                const paddingBottom = parseFloat(styles.paddingBottom) || 0;
+                
+                let height = element.offsetHeight + marginTop + marginBottom;
+                
+                // For elements with children, ensure we account for child heights
+                if (element.children.length > 0) {
+                    let childrenHeight = 0;
+                    Array.from(element.children).forEach(child => {
+                        const childStyles = window.getComputedStyle(child);
+                        const childMarginTop = parseFloat(childStyles.marginTop) || 0;
+                        const childMarginBottom = parseFloat(childStyles.marginBottom) || 0;
+                        childrenHeight += child.offsetHeight + childMarginTop + childMarginBottom;
+                    });
+                    height = Math.max(height, childrenHeight + paddingTop + paddingBottom + marginTop + marginBottom);
+                }
+                
+                return height;
+            };
+
+            // Calculate total height of all direct children
+            const children = Array.from(container.children);
+            let totalHeight = 0;
+            children.forEach(child => {
+                totalHeight += calculateElementHeight(child);
+            });
+
+            // Add container padding
+            const containerStyles = window.getComputedStyle(container);
+            const paddingTop = parseFloat(containerStyles.paddingTop) || 0;
+            const paddingBottom = parseFloat(containerStyles.paddingBottom) || 0;
+            totalHeight += paddingTop + paddingBottom;
+
+            // Add significant buffer to ensure signature section is captured
+            totalHeight += 100;
+
+            // Ensure we capture the complete content with proper dimensions
+            const fullWidth = Math.max(container.scrollWidth, container.offsetWidth);
+            const fullHeight = Math.max(container.scrollHeight, container.offsetHeight, totalHeight);
+
+            console.log('Capturing PDF with dimensions:', { 
+                fullWidth, 
+                fullHeight, 
+                calculatedHeight: totalHeight,
+                scrollHeight: container.scrollHeight,
+                offsetHeight: container.offsetHeight 
+            });
+
+            html2canvas(container, {
+                scale: 1.5,
                 useCORS: true,
-                logging: false,
-                windowWidth: contentRef.current.scrollWidth,
-                windowHeight: contentRef.current.scrollHeight
+                logging: true,
+                width: fullWidth,
+                height: fullHeight,
+                windowWidth: fullWidth,
+                windowHeight: fullHeight,
+                scrollY: -window.scrollY,
+                scrollX: -window.scrollX,
+                allowTaint: true,
+                backgroundColor: '#ffffff',
+                onclone: (clonedDoc) => {
+                    const clonedContainer = clonedDoc.querySelector('.remuneration-container');
+                    if (clonedContainer) {
+                        clonedContainer.style.height = fullHeight + 'px';
+                        clonedContainer.style.overflow = 'visible';
+                    }
+                }
             }).then(canvas => {
                 const imgData = canvas.toDataURL('image/png');
+                const imgWidth = canvas.width;
+                const imgHeight = canvas.height;
 
+                console.log('Canvas dimensions:', { imgWidth, imgHeight });
 
-
+                // Create PDF with proper aspect ratio to fit all content
                 const pdf = new jsPDF({
-                    orientation: canvas.width > canvas.height ? 'l' : 'p',
+                    orientation: imgWidth > imgHeight ? 'landscape' : 'portrait',
                     unit: 'px',
-                    format: [canvas.width, canvas.height]
+                    format: [imgWidth / 1.5, imgHeight / 1.5],
+                    compress: true
                 });
 
-                pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth / 1.5, imgHeight / 1.5, '', 'FAST');
                 pdf.save(`Variable_Remuneration_${currentMonth}_${currentYear}.pdf`);
 
+                // Restore original state
+                container.classList.remove('pdf-print-mode');
+                inputData.forEach(data => {
+                    data.element.style.display = '';
+                    const span = data.parent.querySelector('.pdf-value-display');
+                    if (span) span.remove();
+                });
 
                 if (actionsDiv) actionsDiv.style.display = 'flex';
-
-                contentRef.current.style.width = originalStyle.width;
-                contentRef.current.style.maxWidth = originalStyle.maxWidth;
-                contentRef.current.style.overflow = originalStyle.overflow;
+                container.style.width = originalContainerStyle.width;
+                container.style.maxWidth = originalContainerStyle.maxWidth;
+                container.style.overflow = originalContainerStyle.overflow;
+                container.style.height = originalContainerStyle.height;
+                container.style.minHeight = originalContainerStyle.minHeight;
 
                 if (tableContainer) {
-                    tableContainer.style.overflow = originalTableStyle.overflow;
-                    tableContainer.style.maxWidth = originalTableStyle.maxWidth;
+                    tableContainer.style.overflow = originalTableContainerStyle.overflow;
+                    tableContainer.style.maxWidth = originalTableContainerStyle.maxWidth;
+                    tableContainer.style.width = originalTableContainerStyle.width;
                 }
             }).catch(err => {
                 console.error('PDF generation failed:', err);
 
-                if (actionsDiv) actionsDiv.style.display = 'flex';
+                // Restore original state on error
+                container.classList.remove('pdf-print-mode');
+                inputData.forEach(data => {
+                    data.element.style.display = '';
+                    const span = data.parent.querySelector('.pdf-value-display');
+                    if (span) span.remove();
+                });
 
-                contentRef.current.style.width = originalStyle.width;
-                contentRef.current.style.maxWidth = originalStyle.maxWidth;
-                contentRef.current.style.overflow = originalStyle.overflow;
+                if (actionsDiv) actionsDiv.style.display = 'flex';
+                container.style.width = originalContainerStyle.width;
+                container.style.maxWidth = originalContainerStyle.maxWidth;
+                container.style.overflow = originalContainerStyle.overflow;
+                container.style.height = originalContainerStyle.height;
+                container.style.minHeight = originalContainerStyle.minHeight;
 
                 if (tableContainer) {
-                    tableContainer.style.overflow = originalTableStyle.overflow;
-                    tableContainer.style.maxWidth = originalTableStyle.maxWidth;
+                    tableContainer.style.overflow = originalTableContainerStyle.overflow;
+                    tableContainer.style.maxWidth = originalTableContainerStyle.maxWidth;
+                    tableContainer.style.width = originalTableContainerStyle.width;
                 }
             });
-        }, 100);
+        }, 500);
     };
 
     return (

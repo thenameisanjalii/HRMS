@@ -534,69 +534,118 @@ const Remuneration = () => {
     const actionsDiv = document.querySelector(".remuneration-actions");
     if (actionsDiv) actionsDiv.style.display = "none";
 
-    const originalStyle = {
-      width: contentRef.current.style.width,
-      maxWidth: contentRef.current.style.maxWidth,
-      overflow: contentRef.current.style.overflow,
+    const container = contentRef.current;
+    const tableContainer = container.querySelector(".table-container");
+    
+    // Store original styles
+    const originalContainerStyle = {
+      width: container.style.width,
+      maxWidth: container.style.maxWidth,
+      overflow: container.style.overflow,
     };
 
-    const tableContainer = contentRef.current.querySelector(".table-container");
-    const originalTableStyle = {
+    const originalTableContainerStyle = {
       overflow: tableContainer ? tableContainer.style.overflow : "",
       maxWidth: tableContainer ? tableContainer.style.maxWidth : "",
+      width: tableContainer ? tableContainer.style.width : "",
     };
 
-    contentRef.current.style.width = "fit-content";
-    contentRef.current.style.maxWidth = "none";
-    contentRef.current.style.overflow = "visible";
+    // Apply styles to ensure full content is visible
+    container.style.width = "fit-content";
+    container.style.maxWidth = "none";
+    container.style.overflow = "visible";
+    container.classList.add("pdf-print-mode");
 
     if (tableContainer) {
       tableContainer.style.overflow = "visible";
       tableContainer.style.maxWidth = "none";
+      tableContainer.style.width = "auto";
     }
 
+    // Force input values to be visible for PDF
+    const inputs = container.querySelectorAll('input[type="number"]');
+    const inputData = [];
+    inputs.forEach((input, index) => {
+      inputData.push({
+        element: input,
+        parent: input.parentElement,
+        value: input.value,
+        nextSibling: input.nextSibling
+      });
+      const span = document.createElement('span');
+      span.className = 'pdf-value-display';
+      span.textContent = input.value || '0';
+      span.style.cssText = 'font-size: 0.7rem; color: #000; display: inline-block;';
+      input.style.display = 'none';
+      input.parentElement.insertBefore(span, input.nextSibling);
+    });
+
     setTimeout(() => {
-      html2canvas(contentRef.current, {
+      const fullWidth = container.scrollWidth;
+      const fullHeight = container.scrollHeight;
+
+      html2canvas(container, {
         scale: 2,
         useCORS: true,
         logging: false,
-        windowWidth: contentRef.current.scrollWidth,
-        windowHeight: contentRef.current.scrollHeight,
+        width: fullWidth,
+        height: fullHeight,
+        windowWidth: fullWidth,
+        windowHeight: fullHeight,
       })
         .then((canvas) => {
           const imgData = canvas.toDataURL("image/png");
           const pdf = new jsPDF({
-            orientation: "l",
+            orientation: "landscape",
             unit: "px",
-            format: [canvas.width, canvas.height],
+            format: [canvas.width / 2, canvas.height / 2],
           });
 
-          pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+          pdf.addImage(imgData, "PNG", 0, 0, canvas.width / 2, canvas.height / 2);
           pdf.save(`Remuneration_${currentMonth}_${currentYear}.pdf`);
 
+          // Restore original state
+          container.classList.remove("pdf-print-mode");
+          inputData.forEach(data => {
+            data.element.style.display = '';
+            const span = data.parent.querySelector('.pdf-value-display');
+            if (span) span.remove();
+          });
+          
           if (actionsDiv) actionsDiv.style.display = "flex";
-          contentRef.current.style.width = originalStyle.width;
-          contentRef.current.style.maxWidth = originalStyle.maxWidth;
-          contentRef.current.style.overflow = originalStyle.overflow;
+          container.style.width = originalContainerStyle.width;
+          container.style.maxWidth = originalContainerStyle.maxWidth;
+          container.style.overflow = originalContainerStyle.overflow;
 
           if (tableContainer) {
-            tableContainer.style.overflow = originalTableStyle.overflow;
-            tableContainer.style.maxWidth = originalTableStyle.maxWidth;
+            tableContainer.style.overflow = originalTableContainerStyle.overflow;
+            tableContainer.style.maxWidth = originalTableContainerStyle.maxWidth;
+            tableContainer.style.width = originalTableContainerStyle.width;
           }
         })
         .catch((err) => {
           console.error("PDF generation failed:", err);
+          
+          // Restore original state on error
+          container.classList.remove("pdf-print-mode");
+          inputData.forEach(data => {
+            data.element.style.display = '';
+            const span = data.parent.querySelector('.pdf-value-display');
+            if (span) span.remove();
+          });
+          
           if (actionsDiv) actionsDiv.style.display = "flex";
-          contentRef.current.style.width = originalStyle.width;
-          contentRef.current.style.maxWidth = originalStyle.maxWidth;
-          contentRef.current.style.overflow = originalStyle.overflow;
+          container.style.width = originalContainerStyle.width;
+          container.style.maxWidth = originalContainerStyle.maxWidth;
+          container.style.overflow = originalContainerStyle.overflow;
 
           if (tableContainer) {
-            tableContainer.style.overflow = originalTableStyle.overflow;
-            tableContainer.style.maxWidth = originalTableStyle.maxWidth;
+            tableContainer.style.overflow = originalTableContainerStyle.overflow;
+            tableContainer.style.maxWidth = originalTableContainerStyle.maxWidth;
+            tableContainer.style.width = originalTableContainerStyle.width;
           }
         });
-    }, 100);
+    }, 300);
   };
 
   const totals = calculateTotals();
