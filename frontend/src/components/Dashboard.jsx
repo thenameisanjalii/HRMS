@@ -154,12 +154,6 @@ const Dashboard = ({ onLogout }) => {
       value: String(dashboardData.stats.onLeave),
       color: "amber",
     },
-    {
-      id: 4,
-      label: "Pending Leaves",
-      value: String(dashboardData.stats.pendingLeaves),
-      color: "rose",
-    },
   ];
 
   const employeeAttendance =
