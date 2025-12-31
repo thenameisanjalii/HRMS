@@ -134,6 +134,14 @@ router.put('/profile/me', protect, async (req, res) => {
                     ...profile.address
                 };
             }
+
+            // Handle nested personalAddress object separately
+            if (profile.personalAddress) {
+                cleanProfile.personalAddress = {
+                    ...user.profile?.personalAddress,
+                    ...profile.personalAddress
+                };
+            }
             
             // Preserve existing nested objects that weren't updated
             // Handle case where user.profile might be undefined
@@ -242,6 +250,14 @@ router.put('/:id', protect, isAdminOrCEO, validateRole, async (req, res) => {
                 cleanProfile.address = {
                     ...user.profile?.address,
                     ...profile.address
+                };
+            }
+
+            // Handle nested personalAddress object separately
+            if (profile.personalAddress) {
+                cleanProfile.personalAddress = {
+                    ...user.profile?.personalAddress,
+                    ...profile.personalAddress
                 };
             }
             

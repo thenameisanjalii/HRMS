@@ -34,6 +34,7 @@ const UserSchema = new mongoose.Schema({
         personalEmail: String,
         dateOfBirth: Date,
         gender: { type: String, enum: ['Male', 'Female', 'Other'] },
+        bloodGroup: String,
         address: {
             street: String,
             city: String,

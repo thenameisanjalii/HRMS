@@ -14,6 +14,7 @@ const ProfileEdit = ({ onBack }) => {
         lastName: '',
         phone: '',
         personalEmail: '',
+        bloodGroup: '',
         gender: '',
         dateOfBirth: '',
         address: {
@@ -55,6 +56,7 @@ const ProfileEdit = ({ onBack }) => {
                         lastName: userData.profile?.lastName || '',
                         phone: userData.profile?.phone || '',
                         personalEmail: userData.profile?.personalEmail || '',
+                        bloodGroup: userData.profile?.bloodGroup || '',
                         gender: userData.profile?.gender || '',
                         dateOfBirth: userData.profile?.dateOfBirth 
                             ? new Date(userData.profile.dateOfBirth).toISOString().split('T')[0] 
@@ -199,6 +201,7 @@ const ProfileEdit = ({ onBack }) => {
                 lastName: formData.lastName,
                 phone: formData.phone,
                 personalEmail: formData.personalEmail,
+                bloodGroup: formData.bloodGroup,
                 gender: formData.gender,
                 dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth) : null,
                 address: {
@@ -370,7 +373,14 @@ const ProfileEdit = ({ onBack }) => {
                             />
                         </div>
                         <div className="form-group">
-                            {/* Empty space for layout alignment */}
+                            <label>Blood Group</label>
+                            <input
+                                type="text"
+                                name="bloodGroup"
+                                value={formData.bloodGroup}
+                                onChange={handleChange}
+                                placeholder="e.g. O+"
+                            />
                         </div>
                     </div>
 
