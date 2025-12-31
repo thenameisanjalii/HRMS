@@ -26,7 +26,7 @@ const addHalfDayAttendance = async () => {
 
         // Set a past date (e.g., Dec 20, 2025)
         const targetDate = new Date("2025-12-20");
-        targetDate.setHours(0, 0, 0, 0);
+        targetDate.setUTCHours(0, 0, 0, 0);
 
         // Create half-day attendance
         const attendance = await Attendance.findOneAndUpdate(

@@ -5,6 +5,6 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   preview: {
-    allowedHosts: ['hrms-1-lato.onrender.com']
+    allowedHosts: ['hrms-1-lato.onrender.com', 'localhost:5000']
   }
 })

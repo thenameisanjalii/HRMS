@@ -234,7 +234,7 @@ router.put("/:id/approve", protect, async (req, res) => {
       d.setDate(d.getDate() + 1)
     ) {
       const dateOnly = new Date(d);
-      dateOnly.setHours(0, 0, 0, 0);
+      dateOnly.setUTCHours(0, 0, 0, 0);
 
       await Attendance.findOneAndUpdate(
         { user: leave.user, date: dateOnly },

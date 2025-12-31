@@ -8,7 +8,7 @@ const { protect, isAdminOrCEO } = require('../middleware/auth');
 router.post('/check-in', protect, async (req, res) => {
     try {
         const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        today.setUTCHours(0, 0, 0, 0);
 
         const existingAttendance = await Attendance.findOne({
             user: req.user._id,
@@ -65,7 +65,7 @@ router.post('/check-in', protect, async (req, res) => {
 router.post('/check-out', protect, async (req, res) => {
     try {
         const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        today.setUTCHours(0, 0, 0, 0);
 
         const attendance = await Attendance.findOne({
             user: req.user._id,
@@ -112,12 +112,12 @@ router.get('/my', protect, async (req, res) => {
         let startDate, endDate;
 
         if (month && year) {
-            startDate = new Date(year, month - 1, 1);
-            endDate = new Date(year, month, 0);
+            startDate = new Date(Date.UTC(year, month - 1, 1));
+            endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
         } else {
             const now = new Date();
-            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-            endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            startDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+            endDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59, 999));
         }
 
         const attendance = await Attendance.aggregate([
@@ -178,7 +178,7 @@ router.get('/my', protect, async (req, res) => {
 router.get('/today', protect, async (req, res) => {
     try {
         const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        today.setUTCHours(0, 0, 0, 0);
 
         const attendance = await Attendance.aggregate([
             {
@@ -228,7 +228,7 @@ router.get('/all', protect, async (req, res) => {
         const { date } = req.query;
 
         const targetDate = date ? new Date(date) : new Date();
-        targetDate.setHours(0, 0, 0, 0);
+        targetDate.setUTCHours(0, 0, 0, 0);
 
         const attendance = await Attendance.aggregate([
             {
@@ -362,7 +362,7 @@ router.get('/subordinates/status', protect, async (req, res) => {
         }
 
         const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        today.setUTCHours(0, 0, 0, 0);
 
         // Fetch valid roles with hierarchy level between 2 and 4 (CEO down to Employee)
         const RolePermission = require('../models/RolePermission');
@@ -430,7 +430,7 @@ router.post('/mark-status', protect, async (req, res) => {
         }
 
         const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        today.setUTCHours(0, 0, 0, 0);
 
         let attendance = await Attendance.findOne({ user: userId, date: today });
         const previousStatus = attendance ? attendance.status : 'absent'; // Logical default for non-existant record

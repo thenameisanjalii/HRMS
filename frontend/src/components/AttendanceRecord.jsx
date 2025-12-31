@@ -33,10 +33,19 @@ const AttendanceRecord = () => {
             const data = await attendanceAPI.getMy(currentTime.getMonth() + 1, currentTime.getFullYear());
             if (data.success) {
                 setAttendanceHistory(data.attendance || []);
+                console.log('Attendance data:', data.attendance);
+                const nowDate = new Date();
+                console.log('Looking for date (UTC):', `${nowDate.getUTCFullYear()}-${nowDate.getUTCMonth()+1}-${nowDate.getUTCDate()}`);
+                
                 const today = data.attendance?.find(a => {
-                    const attDate = new Date(a.date).toDateString();
-                    return attDate === new Date().toDateString();
+                    const attDate = new Date(a.date);
+                    console.log('Checking attendance date:', a.date, 'parsed as UTC:', `${attDate.getUTCFullYear()}-${attDate.getUTCMonth()+1}-${attDate.getUTCDate()}`);
+                    // Compare UTC dates
+                    return attDate.getUTCFullYear() === nowDate.getUTCFullYear() &&
+                           attDate.getUTCMonth() === nowDate.getUTCMonth() &&
+                           attDate.getUTCDate() === nowDate.getUTCDate();
                 });
+                console.log('Found today attendance:', today);
                 if (today) {
                     setTodayAttendance(today);
                     if (today.checkIn?.time) setCheckInTime(new Date(today.checkIn.time));
@@ -110,8 +119,12 @@ const AttendanceRecord = () => {
     const calculateStats = () => {
         // Filter out today's record from history to avoid double counting if it's already there
         const historyExcludingToday = attendanceHistory.filter(a => {
-            const attDate = new Date(a.date).toDateString();
-            return attDate !== new Date().toDateString();
+            const attDate = new Date(a.date);
+            const nowDate = new Date();
+            // Compare UTC dates
+            return !(attDate.getUTCFullYear() === nowDate.getUTCFullYear() &&
+                    attDate.getUTCMonth() === nowDate.getUTCMonth() &&
+                    attDate.getUTCDate() === nowDate.getUTCDate());
         });
 
         let presentCount = 0;

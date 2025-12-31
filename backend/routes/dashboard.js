@@ -8,7 +8,7 @@ const { protect, isManagement } = require("../middleware/auth");
 router.get("/", protect, isManagement, async (req, res) => {
   try {
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setUTCHours(0, 0, 0, 0);
 
     const totalEmployees = await User.countDocuments({
       role: { $nin: ["FACULTY_IN_CHARGE", "ADMIN", "OFFICER_IN_CHARGE"] },
