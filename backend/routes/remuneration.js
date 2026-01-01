@@ -75,17 +75,6 @@ router.get('/attendance-summary', protect, isManagement, async (req, res) => {
         const monthNum = parseInt(month);
         const yearNum = parseInt(year);
 
-        // Check if it's the current month - if so, return empty
-        const now = new Date();
-        if (yearNum === now.getUTCFullYear() && monthNum === (now.getUTCMonth() + 1)) {
-            return res.json({
-                success: true,
-                isCurrentMonth: true,
-                message: 'Current month data not available yet',
-                employees: []
-            });
-        }
-
         // Get all employees (exclude FACULTY_IN_CHARGE and OFFICER_IN_CHARGE)
         const users = await User.find({
             role: { $nin: ['FACULTY_IN_CHARGE', 'OFFICER_IN_CHARGE'] },
@@ -101,11 +90,14 @@ router.get('/attendance-summary', protect, isManagement, async (req, res) => {
             date: { $gte: startDate, $lte: endDate }
         });
 
+        console.log(`Total attendance records found: ${allAttendance.length}`);
+        console.log(`Date range: ${startDate} to ${endDate}`);
+
         // Build summary for each employee
         const employeeSummaries = users.map(user => {
             // Get employee's joining date
-            const joiningDate = user.employment?.dateOfJoining
-                ? new Date(user.employment.dateOfJoining)
+            const joiningDate = user.employment?.joiningDate
+                ? new Date(user.employment.joiningDate)
                 : null;
 
             // Calculate start day for this employee (1 if joined before this month)
@@ -119,7 +111,7 @@ router.get('/attendance-summary', protect, isManagement, async (req, res) => {
                     employeeId: user._id,
                     name: `${user.profile?.firstName || ''} ${user.profile?.lastName || ''}`.trim() || user.username,
                     designation: user.employment?.designation || user.role,
-                    dateOfJoining: user.employment?.dateOfJoining,
+                    dateOfJoining: user.employment?.joiningDate,
                     daysWorked: 0,
                     daysAbsent: 0,
                     casualLeave: 0,
@@ -135,6 +127,13 @@ router.get('/attendance-summary', protect, isManagement, async (req, res) => {
             const userAttendance = allAttendance.filter(
                 a => a.user.toString() === user._id.toString()
             );
+
+            // Debug logging for Himanshu
+            if (user.username === 'himanshu' || user.profile?.firstName === 'Himanshu') {
+                console.log(`Himanshu user ID: ${user._id}`);
+                console.log(`Himanshu attendance count: ${userAttendance.length}`);
+                console.log(`Himanshu attendance:`, userAttendance.map(a => ({ date: a.date, status: a.status })));
+            }
 
             // Count days present (present or late)
             const daysWorked = userAttendance.filter(
@@ -174,7 +173,7 @@ router.get('/attendance-summary', protect, isManagement, async (req, res) => {
                 employeeId: user._id,
                 name: `${user.profile?.firstName || ''} ${user.profile?.lastName || ''}`.trim() || user.username,
                 designation: user.employment?.designation || user.role,
-                dateOfJoining: user.employment?.dateOfJoining,
+                dateOfJoining: user.employment?.joiningDate,
                 grossRemuneration: user.employment?.grossRemuneration || 0,
                 daysWorked,
                 daysAbsent,

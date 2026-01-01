@@ -2,7 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
+const cron = require('node-cron');
 const connectDB = require('./config/db');
+const { autoCheckoutUsers } = require('./services/autoCheckoutService');
 
 dotenv.config();
 
@@ -43,6 +45,18 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
+
+// Initialize cron job for automatic checkout at 8 PM daily
+// Cron expression: '0 20 * * *' means: at minute 0 of hour 20 (8 PM) every day
+cron.schedule('0 20 * * *', async () => {
+    console.log('Cron job triggered: Running automatic checkout at 8 PM');
+    await autoCheckoutUsers();
+}, {
+    scheduled: true,
+    timezone: "Asia/Kolkata" // Adjust timezone as per your requirement
+});
+
+console.log('Automatic checkout cron job scheduled for 8 PM daily');
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
