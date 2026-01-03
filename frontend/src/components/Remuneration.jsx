@@ -170,6 +170,8 @@ const Remuneration = () => {
         const halfDayMap = {};
 
         attendanceResults.forEach((result) => {
+          // console.log(`Result empid : ${result.employeeId}`);
+          // console.log(`Result pdays: ${result.presentDays}`);
           attendanceMap[result.employeeId] = result.presentDays;
           halfDayMap[result.employeeId] = result.halfDays;
         });
