@@ -25,6 +25,11 @@ const PaySlip = () => {
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [hasDataForSelectedMonth, setHasDataForSelectedMonth] = useState(true);
 
+  // Payslip release status
+  const [isPayslipReleased, setIsPayslipReleased] = useState(false);
+  const [showReleaseConfirmation, setShowReleaseConfirmation] = useState(false);
+  const [releasingPayslip, setReleasingPayslip] = useState(false);
+
   // Use database permissions
   const canViewAllSalaries = canAccessFeature("salary.viewAll");
   const canViewOwnSalary = canAccessFeature("salary.viewOwn");
@@ -52,6 +57,34 @@ const PaySlip = () => {
   const [totalWeekendDays, setTotalWeekendDays] = useState(0);
   const [currentMonthHolidays, setCurrentMonthHolidays] = useState(0);
   const [totalDaysInMonth, setTotalDaysInMonth] = useState(0);
+
+  // Check payslip release status
+  useEffect(() => {
+    const checkPayslipStatus = async () => {
+      try {
+        const response = await fetch(
+          `${
+            import.meta.env.VITE_API_URL || "http://localhost:5000"
+          }/api/remuneration/payslip/status?month=${
+            selectedMonth + 1
+          }&year=${selectedYear}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        const data = await response.json();
+        if (data.success) {
+          setIsPayslipReleased(data.isReleased);
+        }
+      } catch (error) {
+        console.error("Failed to check payslip status:", error);
+      }
+    };
+
+    checkPayslipStatus();
+  }, [selectedMonth, selectedYear]);
 
   // Calculate month data
   useEffect(() => {
@@ -310,6 +343,45 @@ const PaySlip = () => {
     }
   };
 
+  const handleReleasePayslip = async () => {
+    setReleasingPayslip(true);
+    try {
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_API_URL || "http://localhost:5000"
+        }/api/remuneration/payslip/release`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            month: selectedMonth + 1,
+            year: selectedYear,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        setIsPayslipReleased(true);
+        setShowReleaseConfirmation(false);
+        alert(
+          `Payslip for ${monthNames[selectedMonth]} ${selectedYear} has been released to all employees!`
+        );
+      } else {
+        alert(data.message || "Failed to release payslip. Please try again.");
+      }
+    } catch (error) {
+      console.error("Failed to release payslip:", error);
+      alert("Failed to release payslip. Please try again.");
+    } finally {
+      setReleasingPayslip(false);
+    }
+  };
+
   const handleDownloadPDF = () => {
     if (!contentRef.current || !selectedEmployee) return;
 
@@ -548,15 +620,28 @@ const PaySlip = () => {
                 )
               )}
             </select>
-            <button
-              className="generate-btn"
-              onClick={() => {
-                // Trigger re-fetch of data by updating dependencies
-                setSelectedEmployee({ ...selectedEmployee });
-              }}
-            >
-              Generate Pay Slip
-            </button>
+            {canViewAllSalaries && (
+              <button
+                className="generate-btn"
+                onClick={() => {
+                  if (hasDataForSelectedMonth) {
+                    setShowReleaseConfirmation(true);
+                  } else {
+                    alert(
+                      "No data available for the selected month. Please ensure attendance data has been recorded."
+                    );
+                  }
+                }}
+                disabled={isPayslipReleased}
+                title={
+                  isPayslipReleased
+                    ? "Payslip already released for this month"
+                    : "Release payslip to all employees"
+                }
+              >
+                {isPayslipReleased ? "✓ Released" : "Generate Pay Slip"}
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -593,242 +678,310 @@ const PaySlip = () => {
         </div>
       )}
 
-      {selectedEmployee && hasDataForSelectedMonth && (
-        <div className="payslip-slip-container" ref={contentRef}>
-          <div className="slip-header">
-            <div className="logo-section">
-              <img
-                src="/National_Institute_of_Technology,_Raipur_Logo.png"
-                alt="NIT Raipur"
-                class="logo-left-payslip"
-              />
-            </div>
-            <div className="organization-info">
-              <h3 className="hindi-title">
-                एन.आई.टी. रायपुर फाउंडेशन फॉरइनोवेशन एंड आंत्रप्रन्योरशिप
-              </h3>
-              <h2 className="org-name">
-                NIT Raipur Foundation for Innovation & Entrepreneurship
-              </h2>
-              <p className="org-subtitle">
-                (A Technology Business Incubator & Not-for-profit Company
-                governed by Section-8 of Companies Act 2013)
-              </p>
-              <p className="org-address">
-                National Institute of Technology Raipur, G.E. Road, Raipur -
-                492010, C.G.
-              </p>
-              <div className="org-contact">
-                <span>Website: www.nitrrfie.in</span>
-                <span>Email: nitrrfie@nitrr.ac.in</span>
+      {selectedEmployee &&
+        hasDataForSelectedMonth &&
+        !canViewAllSalaries &&
+        !isPayslipReleased && (
+          <div className="no-data-message">
+            <p>
+              Payslip for {monthNames[selectedMonth]} {selectedYear} has not
+              been released yet.
+            </p>
+            <p>
+              Please wait for the accountant to release the payslip for this
+              month.
+            </p>
+          </div>
+        )}
+
+      {selectedEmployee &&
+        hasDataForSelectedMonth &&
+        (canViewAllSalaries || isPayslipReleased) && (
+          <div className="payslip-slip-container" ref={contentRef}>
+            <div className="slip-header">
+              <div className="logo-section">
+                <img
+                  src="/National_Institute_of_Technology,_Raipur_Logo.png"
+                  alt="NIT Raipur"
+                  class="logo-left-payslip"
+                />
+              </div>
+              <div className="organization-info">
+                <h3 className="hindi-title">
+                  एन.आई.टी. रायपुर फाउंडेशन फॉरइनोवेशन एंड आंत्रप्रन्योरशिप
+                </h3>
+                <h2 className="org-name">
+                  NIT Raipur Foundation for Innovation & Entrepreneurship
+                </h2>
+                <p className="org-subtitle">
+                  (A Technology Business Incubator & Not-for-profit Company
+                  governed by Section-8 of Companies Act 2013)
+                </p>
+                <p className="org-address">
+                  National Institute of Technology Raipur, G.E. Road, Raipur -
+                  492010, C.G.
+                </p>
+                <div className="org-contact">
+                  <span>Website: www.nitrrfie.in</span>
+                  <span>Email: nitrrfie@nitrr.ac.in</span>
+                </div>
+              </div>
+              <div className="logo-section">
+                <img
+                  src="/logo-NITRRFIE.png"
+                  alt="NITRRFIE"
+                  class="logo-right-payslip"
+                />
               </div>
             </div>
-            <div className="logo-section">
-              <img
-                src="/logo-NITRRFIE.png"
-                alt="NITRRFIE"
-                class="logo-right-payslip"
-              />
+
+            <div className="slip-title">Pay Slip</div>
+
+            <table className="info-table">
+              <tbody>
+                <tr>
+                  <td className="label-cell">
+                    <strong>Name of Employee:</strong>
+                  </td>
+                  <td className="value-cell">{selectedEmployee.name}</td>
+                  <td className="label-cell">
+                    <strong>Month:</strong>
+                  </td>
+                  <td className="value-cell">
+                    {monthNames[selectedMonth].substring(0, 3)}-
+                    {selectedYear.toString().substring(2)}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="label-cell">
+                    <strong>Designation:</strong>
+                  </td>
+                  <td className="value-cell">{selectedEmployee.designation}</td>
+                  <td className="label-cell">
+                    <strong>PAN No:</strong>
+                  </td>
+                  <td className="value-cell">{selectedEmployee.pan}</td>
+                </tr>
+                <tr>
+                  <td className="label-cell">
+                    <strong>Employee ID:</strong>
+                  </td>
+                  <td className="value-cell">{selectedEmployee.employeeId}</td>
+                  <td className="label-cell">
+                    <strong>Bank A/c. No.:</strong>
+                  </td>
+                  <td className="value-cell">{selectedEmployee.bankAccount}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <table className="payslip-table">
+              <thead>
+                <tr>
+                  <th>Earnings</th>
+                  <th>Amount (In Rs.)</th>
+                  <th>Deductions</th>
+                  <th>Amount (In Rs.)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Fixed Pay</td>
+                  <td>
+                    {canEditSalary ? (
+                      <input
+                        type="number"
+                        className="editable-field"
+                        value={selectedEmployee.fixedPay}
+                        onChange={(e) =>
+                          handleFieldChange("fixedPay", e.target.value)
+                        }
+                        min="0"
+                        step="0.01"
+                      />
+                    ) : (
+                      <span className="readonly-field">
+                        {selectedEmployee.fixedPay.toFixed(2)}
+                      </span>
+                    )}
+                  </td>
+                  <td>TDS</td>
+                  <td>
+                    {canEditSalary ? (
+                      <input
+                        type="number"
+                        className="editable-field"
+                        value={selectedEmployee.tds}
+                        onChange={(e) =>
+                          handleFieldChange("tds", e.target.value)
+                        }
+                        min="0"
+                        step="0.01"
+                      />
+                    ) : (
+                      <span className="readonly-field">
+                        {selectedEmployee.tds.toFixed(2)}
+                      </span>
+                    )}
+                  </td>
+                </tr>
+                <tr>
+                  <td>Variable Pay</td>
+                  <td>
+                    {canEditSalary ? (
+                      <input
+                        type="number"
+                        className="editable-field"
+                        value={selectedEmployee.variablePay}
+                        onChange={(e) =>
+                          handleFieldChange("variablePay", e.target.value)
+                        }
+                        min="0"
+                        step="0.01"
+                      />
+                    ) : (
+                      <span className="readonly-field">
+                        {selectedEmployee.variablePay.toFixed(2)}
+                      </span>
+                    )}
+                  </td>
+                  <td>NPS</td>
+                  <td>
+                    {canEditSalary ? (
+                      <input
+                        type="number"
+                        className="editable-field"
+                        value={selectedEmployee.nps}
+                        onChange={(e) =>
+                          handleFieldChange("nps", e.target.value)
+                        }
+                        min="0"
+                        step="0.01"
+                      />
+                    ) : (
+                      <span className="readonly-field">
+                        {selectedEmployee.nps.toFixed(2)}
+                      </span>
+                    )}
+                  </td>
+                </tr>
+                <tr>
+                  <td>Others</td>
+                  <td>
+                    {canEditSalary ? (
+                      <input
+                        type="number"
+                        className="editable-field"
+                        value={selectedEmployee.others}
+                        onChange={(e) =>
+                          handleFieldChange("others", e.target.value)
+                        }
+                        min="0"
+                        step="0.01"
+                      />
+                    ) : (
+                      <span className="readonly-field">
+                        {selectedEmployee.others.toFixed(2)}
+                      </span>
+                    )}
+                  </td>
+                  <td>Other Ded.</td>
+                  <td>
+                    {canEditSalary ? (
+                      <input
+                        type="number"
+                        className="editable-field"
+                        value={selectedEmployee.otherDeductions}
+                        onChange={(e) =>
+                          handleFieldChange("otherDeductions", e.target.value)
+                        }
+                        min="0"
+                        step="0.01"
+                      />
+                    ) : (
+                      <span className="readonly-field">
+                        {selectedEmployee.otherDeductions.toFixed(2)}
+                      </span>
+                    )}
+                  </td>
+                </tr>
+                <tr className="total-row">
+                  <td>
+                    <strong>Gross Salary (In Rs.)</strong>
+                  </td>
+                  <td>
+                    <strong>{calculateGrossSalary().toFixed(2)}</strong>
+                  </td>
+                  <td>
+                    <strong>Total Ded. (In Rs.)</strong>
+                  </td>
+                  <td>
+                    <strong>{calculateTotalDeductions().toFixed(2)}</strong>
+                  </td>
+                </tr>
+                <tr className="net-payslip-row">
+                  <td colSpan="1">
+                    <strong>Net Salary (In Rs.)</strong>
+                  </td>
+                  <td colSpan="3">
+                    <strong>{calculateNetSalary()}</strong>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div className="signature-section">
+              <div className="signature-block">
+                <p className="signature-title">
+                  This is a Computer Generated Salary Slip. Does not Require any
+                  Signature.
+                </p>
+              </div>
             </div>
           </div>
+        )}
 
-          <div className="slip-title">Pay Slip</div>
-
-          <table className="info-table">
-            <tbody>
-              <tr>
-                <td className="label-cell">
-                  <strong>Name of Employee:</strong>
-                </td>
-                <td className="value-cell">{selectedEmployee.name}</td>
-                <td className="label-cell">
-                  <strong>Month:</strong>
-                </td>
-                <td className="value-cell">
-                  {monthNames[selectedMonth].substring(0, 3)}-
-                  {selectedYear.toString().substring(2)}
-                </td>
-              </tr>
-              <tr>
-                <td className="label-cell">
-                  <strong>Designation:</strong>
-                </td>
-                <td className="value-cell">{selectedEmployee.designation}</td>
-                <td className="label-cell">
-                  <strong>PAN No:</strong>
-                </td>
-                <td className="value-cell">{selectedEmployee.pan}</td>
-              </tr>
-              <tr>
-                <td className="label-cell">
-                  <strong>Employee ID:</strong>
-                </td>
-                <td className="value-cell">{selectedEmployee.employeeId}</td>
-                <td className="label-cell">
-                  <strong>Bank A/c. No.:</strong>
-                </td>
-                <td className="value-cell">{selectedEmployee.bankAccount}</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <table className="payslip-table">
-            <thead>
-              <tr>
-                <th>Earnings</th>
-                <th>Amount (In Rs.)</th>
-                <th>Deductions</th>
-                <th>Amount (In Rs.)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Fixed Pay</td>
-                <td>
-                  {canEditSalary ? (
-                    <input
-                      type="number"
-                      className="editable-field"
-                      value={selectedEmployee.fixedPay}
-                      onChange={(e) =>
-                        handleFieldChange("fixedPay", e.target.value)
-                      }
-                      min="0"
-                      step="0.01"
-                    />
-                  ) : (
-                    <span className="readonly-field">
-                      {selectedEmployee.fixedPay.toFixed(2)}
-                    </span>
-                  )}
-                </td>
-                <td>TDS</td>
-                <td>
-                  {canEditSalary ? (
-                    <input
-                      type="number"
-                      className="editable-field"
-                      value={selectedEmployee.tds}
-                      onChange={(e) => handleFieldChange("tds", e.target.value)}
-                      min="0"
-                      step="0.01"
-                    />
-                  ) : (
-                    <span className="readonly-field">
-                      {selectedEmployee.tds.toFixed(2)}
-                    </span>
-                  )}
-                </td>
-              </tr>
-              <tr>
-                <td>Variable Pay</td>
-                <td>
-                  {canEditSalary ? (
-                    <input
-                      type="number"
-                      className="editable-field"
-                      value={selectedEmployee.variablePay}
-                      onChange={(e) =>
-                        handleFieldChange("variablePay", e.target.value)
-                      }
-                      min="0"
-                      step="0.01"
-                    />
-                  ) : (
-                    <span className="readonly-field">
-                      {selectedEmployee.variablePay.toFixed(2)}
-                    </span>
-                  )}
-                </td>
-                <td>NPS</td>
-                <td>
-                  {canEditSalary ? (
-                    <input
-                      type="number"
-                      className="editable-field"
-                      value={selectedEmployee.nps}
-                      onChange={(e) => handleFieldChange("nps", e.target.value)}
-                      min="0"
-                      step="0.01"
-                    />
-                  ) : (
-                    <span className="readonly-field">
-                      {selectedEmployee.nps.toFixed(2)}
-                    </span>
-                  )}
-                </td>
-              </tr>
-              <tr>
-                <td>Others</td>
-                <td>
-                  {canEditSalary ? (
-                    <input
-                      type="number"
-                      className="editable-field"
-                      value={selectedEmployee.others}
-                      onChange={(e) =>
-                        handleFieldChange("others", e.target.value)
-                      }
-                      min="0"
-                      step="0.01"
-                    />
-                  ) : (
-                    <span className="readonly-field">
-                      {selectedEmployee.others.toFixed(2)}
-                    </span>
-                  )}
-                </td>
-                <td>Other Ded.</td>
-                <td>
-                  {canEditSalary ? (
-                    <input
-                      type="number"
-                      className="editable-field"
-                      value={selectedEmployee.otherDeductions}
-                      onChange={(e) =>
-                        handleFieldChange("otherDeductions", e.target.value)
-                      }
-                      min="0"
-                      step="0.01"
-                    />
-                  ) : (
-                    <span className="readonly-field">
-                      {selectedEmployee.otherDeductions.toFixed(2)}
-                    </span>
-                  )}
-                </td>
-              </tr>
-              <tr className="total-row">
-                <td>
-                  <strong>Gross Salary (In Rs.)</strong>
-                </td>
-                <td>
-                  <strong>{calculateGrossSalary().toFixed(2)}</strong>
-                </td>
-                <td>
-                  <strong>Total Ded. (In Rs.)</strong>
-                </td>
-                <td>
-                  <strong>{calculateTotalDeductions().toFixed(2)}</strong>
-                </td>
-              </tr>
-              <tr className="net-payslip-row">
-                <td colSpan="1">
-                  <strong>Net Salary (In Rs.)</strong>
-                </td>
-                <td colSpan="3">
-                  <strong>{calculateNetSalary()}</strong>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div className="signature-section">
-            <div className="signature-block">
-              <p className="signature-title">
-                This is a Computer Generated Salary Slip. Does not Require any
-                Signature.
+      {/* Confirmation Modal for Releasing Payslip */}
+      {showReleaseConfirmation && (
+        <div
+          className="modal-overlay"
+          onClick={() => setShowReleaseConfirmation(false)}
+        >
+          <div
+            className="confirmation-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <h3>Release Payslip Confirmation</h3>
+            </div>
+            <div className="modal-body">
+              <p>
+                Are you sure you want to release the payslip for{" "}
+                <strong>
+                  {monthNames[selectedMonth]} {selectedYear}
+                </strong>{" "}
+                to all employees?
               </p>
+              <p className="modal-warning">
+                Once released, all employees will be able to view their payslip
+                for this month.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="modal-btn cancel-btn"
+                onClick={() => setShowReleaseConfirmation(false)}
+                disabled={releasingPayslip}
+              >
+                Cancel
+              </button>
+              <button
+                className="modal-btn confirm-btn"
+                onClick={handleReleasePayslip}
+                disabled={releasingPayslip}
+              >
+                {releasingPayslip ? "Releasing..." : "Yes, Release"}
+              </button>
             </div>
           </div>
         </div>
